@@ -7,7 +7,6 @@ package build
 import (
 	"fmt"
 	"github.com/achtern/kluver/lexer"
-	"strings"
 )
 
 type Shader struct {
@@ -36,7 +35,7 @@ func (s *Shader) String() string {
 	return fmt.Sprintf("Shader(%s, vertex=%q, fragment=%q, global=%q)", s.version, s.vertex, s.fragment, s.global)
 }
 
-func Build(tokenStream <-chan lexer.Token) string {
+func Build(tokenStream <-chan lexer.Token) (string, string, error) {
 	global := make(Tokens, 0)
 	vertex := make(Tokens, 0)
 	fragment := make(Tokens, 0)
@@ -88,57 +87,15 @@ func Build(tokenStream <-chan lexer.Token) string {
 	shader.vertex = vertex
 	shader.fragment = fragment
 
-	s, _ := shader.buildVertex()
-	return s
+	shader.compiled.vertex = shader.buildVertex()
+	shader.compiled.fragment = shader.buildFragment()
+	return shader.compiled.vertex, shader.compiled.fragment, nil
 }
 
-func (shader *Shader) buildHead() string {
-	return "#version " + shader.version + "\n"
+func (shader *Shader) buildVertex() string {
+	return buildGeneric(shader.vertex, shader.version)
 }
 
-func (shader *Shader) buildVertex() (string, error) {
-
-	var sb StringBuffer
-	sb.append(shader.buildHead())
-
-	providePlaceholderInserted := false
-	provides := make([]Tokens, 0)
-
-	for i := 0; i < len(shader.vertex); i++ {
-		token := shader.vertex[i]
-		switch token.Typ {
-		case lexer.TokenRequire:
-			if !providePlaceholderInserted {
-				// insert provides before the first uniform
-				sb.append(providePlaceholder)
-				providePlaceholderInserted = true
-			}
-			sb.append(generateRequire(token, shader.vertex[i+1], shader.vertex[i+2]))
-			i += 2
-		case lexer.TokenProvide:
-			provides = append(provides, Tokens{shader.vertex[i+1], shader.vertex[i+2]})
-			sb.append(generateProvideSetting(shader.vertex[i+1], shader.vertex[i+2], shader.vertex[i+3], shader.vertex[i+4]))
-			i += 4
-		default:
-			sb.append(token.Val)
-		}
-	}
-
-	compiled := sb.String()
-
-	compiled = strings.Replace(compiled, providePlaceholder, generateProvideDecBlock(provides), -1)
-
-	return compiled, nil
-}
-
-func (shader *Shader) buildFragment() (string, error) {
-
-	var sb StringBuffer
-	sb.append(shader.buildHead())
-
-	for _, token := range shader.fragment {
-		sb.append(token.Val)
-	}
-
-	return sb.String(), nil
+func (shader *Shader) buildFragment() string {
+	return buildGeneric(shader.fragment, shader.version)
 }

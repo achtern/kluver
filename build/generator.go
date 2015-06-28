@@ -10,7 +10,59 @@ import (
 	"strings"
 )
 
-func generateRequire(action, typ, name lexer.Token) string {
+func buildGeneric(tokens Tokens, version string) string {
+	var sb StringBuffer
+	sb.append(buildHead(version))
+
+	providePlaceholderInserted := false
+	provides := make([]Tokens, 0)
+
+	for i := 0; i < len(tokens); i++ {
+		token := tokens[i]
+		switch token.Typ {
+		case lexer.TokenRequire:
+			if !providePlaceholderInserted {
+				// insert provides before the first uniform
+				sb.append(providePlaceholder)
+				providePlaceholderInserted = true
+			}
+			sb.append(generateRequire(tokens[i+1], tokens[i+2]))
+			i += 2
+		case lexer.TokenProvide:
+			provides = append(provides, Tokens{tokens[i+1], tokens[i+2]})
+			sb.append(generateProvideSetting(tokens[i+1], tokens[i+2], tokens[i+3], tokens[i+4]))
+			i += 4
+		case lexer.TokenRequest:
+			sb.append(generateRequest(tokens[i+1], tokens[i+2]))
+			i += 2
+		case lexer.TokenYield:
+			if tokens[i+1].Typ == lexer.TokenActionVar {
+				i += 1
+			}
+			sb.append("// lib support pending")
+			i += 1
+		case lexer.TokenWrite:
+			tmpToken := lexer.Token{lexer.TokenVoid, 0, "fragColor" + tokens[i+2].Val}
+			provides = append(provides, Tokens{tmpToken, tokens[i+4]})
+			sb.append(generateWriteAssignment("fragColor", tokens[i+2], tokens[i+4]))
+			i += 4
+		default:
+			sb.append(token.Val)
+		}
+	}
+
+	compiled := sb.String()
+
+	compiled = strings.Replace(compiled, providePlaceholder, generateProvideDecBlock(provides), -1)
+
+	return compiled
+}
+
+func buildHead(version string) string {
+	return "#version " + version + "\n"
+}
+
+func generateRequire(typ, name lexer.Token) string {
 	return fmt.Sprintf("uniform %s %s", typ.Val, name.Val)
 }
 
@@ -29,4 +81,12 @@ func generateProvideDecBlock(provides []Tokens) string {
 
 func generateProvideDec(typ, name lexer.Token) string {
 	return fmt.Sprintf("out %s %s;\n", typ.Val, strings.Trim(name.Val, " "))
+}
+
+func generateRequest(typ, name lexer.Token) string {
+	return fmt.Sprintf("in %s %s", typ.Val, name.Val)
+}
+
+func generateWriteAssignment(target string, slot, name lexer.Token) string {
+	return fmt.Sprintf("%s%s = %s", target, slot.Val, name.Val)
 }

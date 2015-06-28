@@ -21,5 +21,8 @@ func main() {
 
 	_, tokens := lexer.Lex("test", string(dat))
 
-	fmt.Println(builder.Build(tokens))
+	vertex, fragment, _ := builder.Build(tokens)
+	fmt.Println(vertex)
+	fmt.Println("-------")
+	fmt.Println(fragment)
 }

@@ -5,7 +5,7 @@ in vec2 texCoord;
 uniform vec4 color;
 uniform sampler2D diffuse;
 
-out vec4 fragColor;
+out vec4 fragColor0;
 
 #if !defined(FOG_SLIB_INCLUDED)
 #define FOG_SLIB_INCLUDED
@@ -72,5 +72,5 @@ void main()
 
     out = get_fog_slib(out);
 
-    fragColor = out;
+    fragColor0 = out;
 }
