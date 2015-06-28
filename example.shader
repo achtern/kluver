@@ -1,3 +1,5 @@
+#version 330
+
 @import fog.slib;
 
 #---VERTEX---#

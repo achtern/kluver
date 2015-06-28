@@ -35,6 +35,8 @@ const (
 
 	tokenEOF
 	tokenVoid
+	tokenVersion
+	tokenVersionNumber
 	tokenEndStatement
 	tokenImport
 	tokenImportPath
@@ -62,6 +64,10 @@ func (i tokenType) String() string {
 	switch i {
 	case tokenVoid:
 		return "tokenVoid"
+	case tokenVersion:
+		return "tokenVersion"
+	case tokenVersionNumber:
+		return "tokenVersionNumber"
 	case tokenEndStatement:
 		return "tokenEndStatement"
 	case tokenImport:

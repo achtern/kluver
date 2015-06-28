@@ -6,6 +6,9 @@ package lexer
 
 func lexVoid(l *lexer) stateFn {
 	for {
+		if l.testPrefix(version, tokenVoid) {
+			return lexVersion
+		}
 		if l.testPrefix(importLib, tokenVoid) {
 			return lexImport
 		}
@@ -26,6 +29,26 @@ func lexVoid(l *lexer) stateFn {
 	}
 	l.emit(tokenEOF)
 	return nil
+}
+
+func lexVersion(l *lexer) stateFn {
+	l.lexStatement(version, tokenVersion, nil)
+	for {
+		if isSpace(l.next()) {
+			l.ignore()
+		} else {
+			break
+		}
+	}
+	return lexVersionNumber
+}
+
+func lexVersionNumber(l *lexer) stateFn {
+	if !l.isNumber() {
+		return l.errorf("bad number syntax for version number: %q", l.input[l.start:l.pos])
+	}
+	l.emit(tokenVersionNumber)
+	return lexVoid
 }
 
 func lexEndStatementVoid(l *lexer) stateFn {
