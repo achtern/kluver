@@ -8,13 +8,13 @@ import (
 	"fmt"
 )
 
-type token struct {
+type Token struct {
 	Typ tokenType
 	Pos int
 	Val string
 }
 
-func (i token) String() string {
+func (i Token) String() string {
 	switch i.Typ {
 	case tokenEOF:
 		return "tokenEOF"

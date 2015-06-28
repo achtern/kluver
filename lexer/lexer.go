@@ -16,16 +16,16 @@ type lexer struct {
 	start  int
 	pos    int
 	width  int
-	tokens chan token
+	tokens chan Token
 }
 
 type stateFn func(*lexer) stateFn
 
-func Lex(name, input string) (*lexer, chan token) {
+func Lex(name, input string) (*lexer, chan Token) {
 	l := &lexer{
 		name:   name,
 		input:  input,
-		tokens: make(chan token),
+		tokens: make(chan Token),
 	}
 
 	go l.run()
@@ -40,7 +40,7 @@ func (l *lexer) run() {
 }
 
 func (l *lexer) emit(t tokenType) {
-	l.tokens <- token{t, l.start, l.input[l.start:l.pos]}
+	l.tokens <- Token{t, l.start, l.input[l.start:l.pos]}
 	l.start = l.pos
 }
 
@@ -87,7 +87,7 @@ func (l *lexer) testPrefix(pre string, token tokenType) bool {
 }
 
 func (l *lexer) errorf(format string, args ...interface{}) stateFn {
-	l.tokens <- token{tokenError, l.start, fmt.Sprintf(format, args...)}
+	l.tokens <- Token{tokenError, l.start, fmt.Sprintf(format, args...)}
 	return nil
 }
 
