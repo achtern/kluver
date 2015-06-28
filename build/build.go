@@ -20,6 +20,8 @@ type Shader struct {
 type GLSL struct {
 	vertex   string
 	fragment string
+	provides string
+	requests string
 }
 
 type varDef struct {
