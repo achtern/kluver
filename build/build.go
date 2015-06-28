@@ -38,7 +38,7 @@ func (s *Shader) String() string {
 	return fmt.Sprintf("Shader(%s, vertex=%q, fragment=%q, global=%q)", s.version, s.vertex, s.fragment, s.global)
 }
 
-func Build(tokenStream <-chan lexer.Token) (string, string, error) {
+func Build(tokenStream <-chan lexer.Token) (chan chan lexer.Token, string, string, error) {
 	shader := Shader{}
 
 	shader.global = make(Tokens, 0)
@@ -47,6 +47,9 @@ func Build(tokenStream <-chan lexer.Token) (string, string, error) {
 
 	neededLibs := make([]string, 0)
 
+
+	requestStream := make(chan chan lexer.Token)
+
 	// phase 0 : global
 	// phase 1 : vertex
 	// phase 2 : fragment
@@ -54,7 +57,7 @@ func Build(tokenStream <-chan lexer.Token) (string, string, error) {
 	for token := range tokenStream {
 
 		if token.Typ == lexer.TokenError {
-			return fmt.Sprintf("%d", token.Pos), "", errors.New(token.Val)
+			return nil, fmt.Sprintf("%d", token.Pos), "", errors.New(token.Val)
 		}
 
 		if token.Typ == lexer.TokenImportPath {
@@ -106,13 +109,13 @@ func Build(tokenStream <-chan lexer.Token) (string, string, error) {
 
 	for _, request := range shader.compiled.requests {
 		if !contains(shader.compiled.provides, request) {
-			return "", "", errors.New("Missing @provide statement for <" + request[0].Val + " " + request[1].Val + ">")
+			return nil, "", "", errors.New("Missing @provide statement for <" + request[0].Val + " " + request[1].Val + ">")
 		}
 	}
 
 	fmt.Println(fmt.Sprintf("The following libs were not loaded: %q", neededLibs))
 
-	return shader.compiled.vertex, shader.compiled.fragment, nil
+	return requestStream, shader.compiled.vertex, shader.compiled.fragment, nil
 }
 
 func (shader *Shader) buildVertex() {

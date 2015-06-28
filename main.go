@@ -22,7 +22,7 @@ func main() {
 
 	_, tokens := lexer.Lex("test", string(dat))
 
-	vertex, fragment, err := builder.Build(tokens)
+	_, vertex, fragment, err := builder.Build(tokens)
 	if err != nil {
 		if vertex != "" {
 			// we have a line number
