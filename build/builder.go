@@ -9,10 +9,19 @@ import (
 	"github.com/achtern/kluver/lexer"
 )
 
-func Build(tokens <-chan lexer.Token) string {
+func Build(tokenStream <-chan lexer.Token) string {
+	tokens := make([]lexer.Token, 0)
+
 	var buffer bytes.Buffer
 
-	for token := range tokens {
+	for token := range tokenStream {
+		if token.Typ == lexer.TokenVoid {
+			continue
+		}
+		tokens = append(tokens, token)
+	}
+
+	for _, token := range tokens {
 		buffer.WriteString(token.String())
 		buffer.WriteString("\n")
 	}
