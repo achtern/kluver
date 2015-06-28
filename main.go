@@ -7,6 +7,7 @@ package main
 import (
 	"fmt"
 	"github.com/achtern/kluver/lexer"
+	builder "github.com/achtern/kluver/build"
 	"io/ioutil"
 )
 
@@ -20,7 +21,5 @@ func main() {
 
 	_, tokens := lexer.Lex("test", string(dat))
 
-	for token := range tokens {
-		fmt.Println(token)
-	}
+	fmt.Println(builder.Build(tokens))
 }
