@@ -194,6 +194,9 @@ func lexNameDec(l *lexer) stateFn {
 		if l.hasPrefix(action) {
 			break
 		}
+		if isSpace(l.peek()) {
+			break
+		}
 	}
 	return l.errorf("incomplete name definition")
 }
