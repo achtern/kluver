@@ -10,20 +10,22 @@ import (
 )
 
 type Shader struct {
-	version  int
-	vertex   GLSL
-	fragment GLSL
-	global   GLSL
+	version  string
+	vertex   Tokens
+	fragment Tokens
+	global   Tokens
+	compiled GLSL
 }
 
 type GLSL struct {
-	tokens Tokens
+	vertex   string
+	fragment string
 }
 
 type Tokens []lexer.Token
 
 func (s *Shader) String() string {
-	return fmt.Sprintf("Shader(%d, vertex=%q, fragment=%q, global=%q)", s.version, s.vertex.tokens, s.fragment.tokens, s.global.tokens)
+	return fmt.Sprintf("Shader(%s, vertex=%q, fragment=%q, global=%q)", s.version, s.vertex, s.fragment, s.global)
 }
 
 func Build(tokenStream <-chan lexer.Token) string {
@@ -41,11 +43,19 @@ func Build(tokenStream <-chan lexer.Token) string {
 		switch token.Typ {
 		case lexer.TokenVertex:
 			phase = 1
+			continue
 		case lexer.TokenFragment:
 			phase = 2
+			continue
 		case lexer.TokenEnd:
 			phase = 0
+			continue
 		case lexer.TokenVoid:
+			continue
+		}
+
+		if token.Typ == lexer.TokenVersionNumber {
+			shader.version = token.Val
 			continue
 		}
 
@@ -61,9 +71,42 @@ func Build(tokenStream <-chan lexer.Token) string {
 		}
 	}
 
-	shader.global = GLSL{global}
-	shader.vertex = GLSL{vertex}
-	shader.fragment = GLSL{fragment}
+	shader.global = global
+	shader.vertex = vertex
+	shader.fragment = fragment
 
-	return shader.String()
+	s, _ := shader.buildVertex()
+	return s
+}
+
+func (shader *Shader) buildHead() string {
+	return "#version " + shader.version + "\n"
+}
+
+func (shader *Shader) buildVertex() (string, error) {
+
+	var sb StringBuffer
+	sb.append(shader.buildHead())
+
+	for _, token := range shader.vertex {
+		sb.append(token.Val)
+	}
+
+	return sb.String(), nil
+}
+
+func (shader *Shader) buildFragment() (string, error) {
+
+	var sb StringBuffer
+	sb.append(shader.buildHead())
+
+	for _, token := range shader.fragment {
+		sb.append(token.Val)
+	}
+
+	return sb.String(), nil
+}
+
+func generateRequire(action, typ, name lexer.Token) string {
+	return fmt.Sprintf("uniform %s %s;", typ.Val, name.Val)
 }
