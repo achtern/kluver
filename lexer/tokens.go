@@ -30,6 +30,14 @@ func (i Token) String() string {
 	return fmt.Sprintf("%s: %q", i.Typ, i.Val)
 }
 
+func (i Token) equals(other Token) bool {
+	return i.compatible(other) && i.Pos == other.Pos
+}
+
+func (i Token) compatible(other Token) bool {
+	return i.Typ == other.Typ && i.Val == other.Val
+}
+
 const (
 	TokenError TokenType = iota
 

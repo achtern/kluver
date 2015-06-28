@@ -21,7 +21,10 @@ func main() {
 
 	_, tokens := lexer.Lex("test", string(dat))
 
-	vertex, fragment, _ := builder.Build(tokens)
+	vertex, fragment, err := builder.Build(tokens)
+	if err != nil {
+		panic(err)
+	}
 	fmt.Println(vertex)
 	fmt.Println("-------")
 	fmt.Println(fragment)

@@ -6,6 +6,7 @@ package build
 
 import (
 	"fmt"
+	"errors"
 	"github.com/achtern/kluver/lexer"
 )
 
@@ -91,6 +92,13 @@ func Build(tokenStream <-chan lexer.Token) (string, string, error) {
 
 	shader.compiled.vertex = shader.buildVertex()
 	shader.compiled.fragment = shader.buildFragment()
+
+	for _, request := range shader.compiled.requests {
+		if !contains(shader.compiled.provides, request) {
+			return "", "", errors.New("Missing @provide statement for <" + request[0].Val + " " + request[1].Val + ">")
+		}
+	}
+
 	return shader.compiled.vertex, shader.compiled.fragment, nil
 }
 
