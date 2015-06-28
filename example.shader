@@ -11,7 +11,7 @@ layout (location = 2) in vec3 inNormal;
 @require mat4 model;
 @require mat4 modelView;
 @require mat4 MVP;
-@require mat4 shadowMatrix
+@require mat4 shadowMatrix;
 
 void main ()
 {
