@@ -43,7 +43,9 @@ func Build(tokenStream <-chan lexer.Token) (string, string, error) {
 
 	shader.global = make(Tokens, 0)
 	shader.vertex = make(Tokens, 0)
-	shader.fragment = make(Tokens, 0)	
+	shader.fragment = make(Tokens, 0)
+
+	neededLibs := make([]string, 0)
 
 	// phase 0 : global
 	// phase 1 : vertex
@@ -55,10 +57,8 @@ func Build(tokenStream <-chan lexer.Token) (string, string, error) {
 			return fmt.Sprintf("%d", token.Pos), "", errors.New(token.Val)
 		}
 
-		if token.Typ == lexer.TokenImport {
-			if phase != 0 {
-				return fmt.Sprintf("%d", token.Pos), "", errors.New("Illegal import statement inside GLSL block")
-			}
+		if token.Typ == lexer.TokenImportPath {
+			neededLibs = append(neededLibs, token.Val)
 		}
 
 		switch token.Typ {
@@ -109,6 +109,8 @@ func Build(tokenStream <-chan lexer.Token) (string, string, error) {
 			return "", "", errors.New("Missing @provide statement for <" + request[0].Val + " " + request[1].Val + ">")
 		}
 	}
+
+	fmt.Println(fmt.Sprintf("The following libs were not loaded: %q", neededLibs))
 
 	return shader.compiled.vertex, shader.compiled.fragment, nil
 }
