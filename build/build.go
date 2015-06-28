@@ -39,11 +39,11 @@ func (s *Shader) String() string {
 }
 
 func Build(tokenStream <-chan lexer.Token) (string, string, error) {
-	global := make(Tokens, 0)
-	vertex := make(Tokens, 0)
-	fragment := make(Tokens, 0)
-
 	shader := Shader{}
+
+	shader.global = make(Tokens, 0)
+	shader.vertex = make(Tokens, 0)
+	shader.fragment = make(Tokens, 0)	
 
 	// phase 0 : global
 	// phase 1 : vertex
@@ -76,19 +76,19 @@ func Build(tokenStream <-chan lexer.Token) (string, string, error) {
 
 		switch phase {
 		case 0:
-			global = append(global, token)
+			shader.global = append(shader.global, token)
 		case 1:
-			vertex = append(vertex, token)
+			shader.vertex = append(shader.vertex, token)
 		case 2:
-			fragment = append(fragment, token)
+			shader.fragment = append(shader.fragment, token)
 		default:
 			panic("unknow phase")
 		}
 	}
 
-	shader.global = global
-	shader.vertex = vertex
-	shader.fragment = fragment
+	// shader.global = global
+	// shader.vertex = vertex
+	// shader.fragment = fragment
 
 	shader.buildVertex()
 	shader.buildFragment()
