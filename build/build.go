@@ -45,6 +45,8 @@ func Build(tokenStream <-chan lexer.Token) string {
 			phase = 2
 		case lexer.TokenEnd:
 			phase = 0
+		case lexer.TokenVoid:
+			continue
 		}
 
 		switch phase {
@@ -57,7 +59,6 @@ func Build(tokenStream <-chan lexer.Token) string {
 		default:
 			panic("unknow phase")
 		}
-
 	}
 
 	shader.global = GLSL{global}
