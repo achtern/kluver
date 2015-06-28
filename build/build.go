@@ -22,6 +22,11 @@ type GLSL struct {
 	fragment string
 }
 
+type varDef struct {
+	typ  string
+	name string
+}
+
 type Tokens []lexer.Token
 
 func (s *Shader) String() string {
@@ -59,6 +64,11 @@ func Build(tokenStream <-chan lexer.Token) string {
 			continue
 		}
 
+		if token.Typ == lexer.TokenAction {
+			// we do need the action tokens after lexing
+			continue
+		}
+
 		switch phase {
 		case 0:
 			global = append(global, token)
@@ -88,8 +98,21 @@ func (shader *Shader) buildVertex() (string, error) {
 	var sb StringBuffer
 	sb.append(shader.buildHead())
 
-	for _, token := range shader.vertex {
-		sb.append(token.Val)
+	provides := make([]Tokens, 0)
+
+	for i := 0; i < len(shader.vertex); i++ {
+		token := shader.vertex[i]
+		switch token.Typ {
+		case lexer.TokenRequire:
+			sb.append(generateRequire(token, shader.vertex[i + 1], shader.vertex[i + 2]))
+			i += 2
+		case lexer.TokenProvide:
+			provides = append(provides, Tokens{shader.vertex[i + 1], shader.vertex[i + 2]})
+			sb.append(generateProvideSetting(shader.vertex[i + 1], shader.vertex[i + 2], shader.vertex[i + 3], shader.vertex[i + 4]))
+			i += 4
+		default:
+			sb.append(token.Val)
+		}
 	}
 
 	return sb.String(), nil
@@ -108,5 +131,9 @@ func (shader *Shader) buildFragment() (string, error) {
 }
 
 func generateRequire(action, typ, name lexer.Token) string {
-	return fmt.Sprintf("uniform %s %s;", typ.Val, name.Val)
+	return fmt.Sprintf("uniform %s %s", typ.Val, name.Val)
+}
+
+func generateProvideSetting(typ, name, assign, glslAction lexer.Token) string {
+	return fmt.Sprintf("%s %s %s %s", typ.Val, name.Val, assign.Val, glslAction.Val)
 }
