@@ -6,6 +6,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/achtern/kluver/util"
 	"github.com/achtern/kluver/lexer"
 	builder "github.com/achtern/kluver/build"
 	"io/ioutil"
@@ -23,6 +24,10 @@ func main() {
 
 	vertex, fragment, err := builder.Build(tokens)
 	if err != nil {
+		if vertex != "" {
+			// we have a line number
+			fmt.Println(fmt.Sprintf("Line %d:", util.GetLineFromPos(string(dat), vertex)))
+		}
 		panic(err)
 	}
 	fmt.Println(vertex)

@@ -50,6 +50,11 @@ func Build(tokenStream <-chan lexer.Token) (string, string, error) {
 	// phase 2 : fragment
 	phase := 0
 	for token := range tokenStream {
+
+		if token.Typ == lexer.TokenError {
+			return fmt.Sprintf("%d",token.Pos), "", errors.New(token.Val)
+		}
+
 		switch token.Typ {
 		case lexer.TokenVertex:
 			phase = 1
