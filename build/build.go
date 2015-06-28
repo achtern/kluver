@@ -52,7 +52,13 @@ func Build(tokenStream <-chan lexer.Token) (string, string, error) {
 	for token := range tokenStream {
 
 		if token.Typ == lexer.TokenError {
-			return fmt.Sprintf("%d",token.Pos), "", errors.New(token.Val)
+			return fmt.Sprintf("%d", token.Pos), "", errors.New(token.Val)
+		}
+
+		if token.Typ == lexer.TokenImport {
+			if phase != 0 {
+				return fmt.Sprintf("%d", token.Pos), "", errors.New("Illegal import statement inside GLSL block")
+			}
 		}
 
 		switch token.Typ {

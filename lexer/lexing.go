@@ -188,13 +188,14 @@ func lexNameDec(l *lexer) stateFn {
 		if l.testPrefix(actionAssign, TokenNameDec) {
 			return lexActionAssign
 		}
+
 		if l.next() == eof {
 			break
 		}
 		if l.hasPrefix(action) {
 			break
 		}
-		if isSpace(l.peek()) {
+		if l.peek() == '\n' {
 			break
 		}
 	}
