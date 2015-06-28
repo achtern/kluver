@@ -90,8 +90,8 @@ func Build(tokenStream <-chan lexer.Token) (string, string, error) {
 	shader.vertex = vertex
 	shader.fragment = fragment
 
-	shader.compiled.vertex = shader.buildVertex()
-	shader.compiled.fragment = shader.buildFragment()
+	shader.buildVertex()
+	shader.buildFragment()
 
 	for _, request := range shader.compiled.requests {
 		if !contains(shader.compiled.provides, request) {
@@ -102,18 +102,18 @@ func Build(tokenStream <-chan lexer.Token) (string, string, error) {
 	return shader.compiled.vertex, shader.compiled.fragment, nil
 }
 
-func (shader *Shader) buildVertex() string {
+func (shader *Shader) buildVertex() {
 
 	// vertex shader can only provide data to the fragment shader
 	s, p, _ := buildGeneric(shader.vertex, shader.version)
+	shader.compiled.vertex = s
 	shader.compiled.provides = p
-	return s
 }
 
-func (shader *Shader) buildFragment() string {
+func (shader *Shader) buildFragment() {
 
 	// fragment shader can only request data from the vertex shader
 	s, _, r := buildGeneric(shader.fragment, shader.version)
+	shader.compiled.fragment = s
 	shader.compiled.requests = r
-	return s
 }
