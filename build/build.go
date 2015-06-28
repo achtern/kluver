@@ -5,16 +5,15 @@
 package build
 
 import (
-	"bytes"
 	"fmt"
 	"github.com/achtern/kluver/lexer"
-	"strconv"
 )
 
 type Shader struct {
 	version  int
 	vertex   GLSL
 	fragment GLSL
+	global   GLSL
 }
 
 type GLSL struct {
@@ -24,48 +23,46 @@ type GLSL struct {
 type Tokens []lexer.Token
 
 func (s *Shader) String() string {
-	return fmt.Sprintf("Shader(%d, vertex=%q, fragment=%q)", s.version, s.vertex.tokens, s.fragment.tokens)
+	return fmt.Sprintf("Shader(%d, vertex=%q, fragment=%q, global=%q)", s.version, s.vertex.tokens, s.fragment.tokens, s.global.tokens)
 }
 
 func Build(tokenStream <-chan lexer.Token) string {
-	tokens := make(Tokens, 0)
-
-	var buffer bytes.Buffer
+	global := make(Tokens, 0)
+	vertex := make(Tokens, 0)
+	fragment := make(Tokens, 0)
 
 	shader := Shader{}
 
+	// phase 0 : global
+	// phase 1 : vertex
+	// phase 2 : fragment
+	phase := 0
 	for token := range tokenStream {
-		if token.Typ == lexer.TokenVersionNumber {
-			shader.version, _ = strconv.Atoi(token.Val)
+		switch token.Typ {
+		case lexer.TokenVertex:
+			phase = 1
+		case lexer.TokenFragment:
+			phase = 2
+		case lexer.TokenEnd:
+			phase = 0
 		}
-		tokens = append(tokens, token)
+
+		switch phase {
+		case 0:
+			global = append(global, token)
+		case 1:
+			vertex = append(vertex, token)
+		case 2:
+			fragment = append(fragment, token)
+		default:
+			panic("unknow phase")
+		}
+
 	}
 
-	vertexStart := tokens.findFirst(lexer.TokenVertex) + 1
-	vertexEnd := tokens.findFirst(lexer.TokenEnd)
+	shader.global = GLSL{global}
+	shader.vertex = GLSL{vertex}
+	shader.fragment = GLSL{fragment}
 
-	shader.vertex = GLSL{tokens[vertexStart:vertexEnd]}
-
-	fragmentStart := tokens.findFirst(lexer.TokenFragment) + 1
-	fragmentEnd := tokens.findLast(lexer.TokenEnd)
-
-	shader.fragment = GLSL{tokens[fragmentStart:fragmentEnd]}
-
-	for _, token := range tokens {
-		if token.Typ == lexer.TokenVoid {
-			buffer.WriteString("\n")
-		} else if token.Typ == lexer.TokenGLSL {
-			buffer.WriteString(token.Val)
-		} else {
-			buffer.WriteString(token.Typ.String())
-			buffer.WriteString("(")
-			buffer.WriteString(token.Val)
-			buffer.WriteString(")")
-		}
-	}
-
-	buffer.WriteString(shader.String())
-
-	fmt.Println(shader)
 	return shader.String()
 }
