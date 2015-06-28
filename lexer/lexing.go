@@ -6,16 +6,16 @@ package lexer
 
 func lexVoid(l *lexer) stateFn {
 	for {
-		if l.testPrefix(version, tokenVoid) {
+		if l.testPrefix(version, TokenVoid) {
 			return lexVersion
 		}
-		if l.testPrefix(importLib, tokenVoid) {
+		if l.testPrefix(importLib, TokenVoid) {
 			return lexImport
 		}
-		if l.testPrefix(vertex, tokenVoid) {
+		if l.testPrefix(vertex, TokenVoid) {
 			return lexVertex
 		}
-		if l.testPrefix(fragment, tokenVoid) {
+		if l.testPrefix(fragment, TokenVoid) {
 			return lexFragment
 		}
 		if l.next() == eof {
@@ -25,14 +25,14 @@ func lexVoid(l *lexer) stateFn {
 
 	if l.pos > l.start {
 		// reached end of file. Just void the stuff and exit
-		l.emit(tokenVoid)
+		l.emit(TokenVoid)
 	}
-	l.emit(tokenEOF)
+	l.emit(TokenEOF)
 	return nil
 }
 
 func lexVersion(l *lexer) stateFn {
-	l.lexStatement(version, tokenVersion, nil)
+	l.lexStatement(version, TokenVersion, nil)
 	for {
 		if isSpace(l.next()) {
 			l.ignore()
@@ -47,20 +47,20 @@ func lexVersionNumber(l *lexer) stateFn {
 	if !l.isNumber() {
 		return l.errorf("bad number syntax for version number: %q", l.input[l.start:l.pos])
 	}
-	l.emit(tokenVersionNumber)
+	l.emit(TokenVersionNumber)
 	return lexVoid
 }
 
 func lexEndStatementVoid(l *lexer) stateFn {
-	return l.lexStatement(endStatement, tokenEndStatement, lexVoid)
+	return l.lexStatement(endStatement, TokenEndStatement, lexVoid)
 }
 
 func lexEndStatement(l *lexer) stateFn {
-	return l.lexStatement(endStatement, tokenEndStatement, lexGLSL)
+	return l.lexStatement(endStatement, TokenEndStatement, lexGLSL)
 }
 
 func lexImport(l *lexer) stateFn {
-	return l.lexStatement(importLib, tokenImport, lexImportPath)
+	return l.lexStatement(importLib, TokenImport, lexImportPath)
 }
 
 func lexImportPath(l *lexer) stateFn {
@@ -77,7 +77,7 @@ func lexImportPath(l *lexer) stateFn {
 		}
 
 		for {
-			if l.testPrefix(endStatement, tokenImportPath) {
+			if l.testPrefix(endStatement, TokenImportPath) {
 				return lexEndStatementVoid
 			}
 			if l.next() == eof {
@@ -89,23 +89,23 @@ func lexImportPath(l *lexer) stateFn {
 }
 
 func lexVertex(l *lexer) stateFn {
-	return l.lexStatement(vertex, tokenVertex, lexGLSL)
+	return l.lexStatement(vertex, TokenVertex, lexGLSL)
 }
 
 func lexFragment(l *lexer) stateFn {
-	return l.lexStatement(fragment, tokenFragment, lexGLSL)
+	return l.lexStatement(fragment, TokenFragment, lexGLSL)
 }
 
 func lexEnd(l *lexer) stateFn {
-	return l.lexStatement(end, tokenEnd, lexVoid)
+	return l.lexStatement(end, TokenEnd, lexVoid)
 }
 
 func lexGLSL(l *lexer) stateFn {
 	for {
-		if l.testPrefix(action, tokenGLSL) {
+		if l.testPrefix(action, TokenGLSL) {
 			return lexAction
 		}
-		if l.testPrefix(end, tokenGLSL) {
+		if l.testPrefix(end, TokenGLSL) {
 			return lexEnd
 		}
 		if l.next() == eof {
@@ -116,7 +116,7 @@ func lexGLSL(l *lexer) stateFn {
 }
 
 func lexAction(l *lexer) stateFn {
-	l.lexStatement(action, tokenAction, nil)
+	l.lexStatement(action, TokenAction, nil)
 
 	if l.hasPrefix(actionRequire) {
 		return lexRequire
@@ -142,7 +142,7 @@ func lexAction(l *lexer) stateFn {
 }
 
 func lexRequire(l *lexer) stateFn {
-	l.lexStatement(actionRequire, tokenRequire, nil)
+	l.lexStatement(actionRequire, TokenRequire, nil)
 	if isSpace(l.next()) {
 		l.ignore()
 	}
@@ -150,7 +150,7 @@ func lexRequire(l *lexer) stateFn {
 }
 
 func lexRequest(l *lexer) stateFn {
-	l.lexStatement(actionRequest, tokenRequest, nil)
+	l.lexStatement(actionRequest, TokenRequest, nil)
 	if isSpace(l.next()) {
 		l.ignore()
 	}
@@ -158,7 +158,7 @@ func lexRequest(l *lexer) stateFn {
 }
 
 func lexProvide(l *lexer) stateFn {
-	l.lexStatement(actionProvide, tokenProvide, nil)
+	l.lexStatement(actionProvide, TokenProvide, nil)
 	if isSpace(l.next()) {
 		l.ignore()
 	}
@@ -167,7 +167,7 @@ func lexProvide(l *lexer) stateFn {
 
 func lexTypeDef(l *lexer) stateFn {
 	for {
-		if l.testPrefix(" ", tokenTypeDef) || l.testPrefix("\t", tokenTypeDef) {
+		if l.testPrefix(" ", TokenTypeDef) || l.testPrefix("\t", TokenTypeDef) {
 			return lexNameDec
 		}
 		if l.next() == eof {
@@ -182,10 +182,10 @@ func lexNameDec(l *lexer) stateFn {
 		l.ignore()
 	}
 	for {
-		if l.testPrefix(endStatement, tokenNameDec) {
+		if l.testPrefix(endStatement, TokenNameDec) {
 			return lexEndStatement
 		}
-		if l.testPrefix(actionAssign, tokenNameDec) {
+		if l.testPrefix(actionAssign, TokenNameDec) {
 			return lexActionAssign
 		}
 		if l.next() == eof {
@@ -199,7 +199,7 @@ func lexNameDec(l *lexer) stateFn {
 }
 
 func lexActionAssign(l *lexer) stateFn {
-	l.lexStatement(actionAssign, tokenAssign, nil)
+	l.lexStatement(actionAssign, TokenAssign, nil)
 	if isSpace(l.next()) {
 		l.ignore()
 	}
@@ -208,7 +208,7 @@ func lexActionAssign(l *lexer) stateFn {
 
 func lexGLSLAction(l *lexer) stateFn {
 	for {
-		if l.testPrefix(endStatement, tokenGLSLAction) {
+		if l.testPrefix(endStatement, TokenGLSLAction) {
 			return lexEndStatement
 		}
 		if l.next() == eof {
@@ -219,7 +219,7 @@ func lexGLSLAction(l *lexer) stateFn {
 }
 
 func lexYield(l *lexer) stateFn {
-	return l.lexStatement(actionYield, tokenYield, lexActionVar)
+	return l.lexStatement(actionYield, TokenYield, lexActionVar)
 }
 
 func lexActionVar(l *lexer) stateFn {
@@ -230,7 +230,7 @@ func lexActionVar(l *lexer) stateFn {
 		if isSpace(l.next()) {
 			l.ignore()
 		}
-		if l.testPrefix(endStatement, tokenActionVar) {
+		if l.testPrefix(endStatement, TokenActionVar) {
 			return lexEndStatement
 		}
 	}
@@ -238,13 +238,13 @@ func lexActionVar(l *lexer) stateFn {
 }
 
 func lexWrite(l *lexer) stateFn {
-	return l.lexStatement(actionWrite, tokenWrite, lexWriteOpenBracket)
+	return l.lexStatement(actionWrite, TokenWrite, lexWriteOpenBracket)
 	return lexWriteOpenBracket
 }
 
 func lexWriteOpenBracket(l *lexer) stateFn {
 	if l.hasPrefix(writeOpenBracket) {
-		return l.lexStatement(writeOpenBracket, tokenWriteOpenBracket, lexWriteSlot)
+		return l.lexStatement(writeOpenBracket, TokenWriteOpenBracket, lexWriteSlot)
 	}
 
 	return l.errorf("<%s> expected after write action", writeOpenBracket)
@@ -252,7 +252,7 @@ func lexWriteOpenBracket(l *lexer) stateFn {
 
 func lexWriteCloseBracket(l *lexer) stateFn {
 	if l.hasPrefix(writeCloseBracket) {
-		return l.lexStatement(writeCloseBracket, tokenWriteCloseBracket, lexActionVar)
+		return l.lexStatement(writeCloseBracket, TokenWriteCloseBracket, lexActionVar)
 	}
 
 	return l.errorf("<%s> expected after write slot", writeCloseBracket)
@@ -262,6 +262,6 @@ func lexWriteSlot(l *lexer) stateFn {
 	if !l.isNumber() {
 		return l.errorf("bad number syntax for write slot: %q", l.input[l.start:l.pos])
 	}
-	l.emit(tokenWriteSlot)
+	l.emit(TokenWriteSlot)
 	return lexWriteCloseBracket
 }

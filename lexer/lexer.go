@@ -39,7 +39,7 @@ func (l *lexer) run() {
 	close(l.tokens)
 }
 
-func (l *lexer) emit(t tokenType) {
+func (l *lexer) emit(t TokenType) {
 	l.tokens <- Token{t, l.start, l.input[l.start:l.pos]}
 	l.start = l.pos
 }
@@ -74,7 +74,7 @@ func (l *lexer) hasPrefix(pre string) bool {
 	return strings.HasPrefix(l.input[l.pos:], pre)
 }
 
-func (l *lexer) testPrefix(pre string, token tokenType) bool {
+func (l *lexer) testPrefix(pre string, token TokenType) bool {
 	if l.hasPrefix(pre) {
 		if l.pos > l.start {
 			l.emit(token)
@@ -87,7 +87,7 @@ func (l *lexer) testPrefix(pre string, token tokenType) bool {
 }
 
 func (l *lexer) errorf(format string, args ...interface{}) stateFn {
-	l.tokens <- Token{tokenError, l.start, fmt.Sprintf(format, args...)}
+	l.tokens <- Token{TokenError, l.start, fmt.Sprintf(format, args...)}
 	return nil
 }
 
@@ -129,7 +129,7 @@ func (l *lexer) isNumber() bool {
 	return true
 }
 
-func (l *lexer) lexStatement(keyword string, emit tokenType, next stateFn) stateFn {
+func (l *lexer) lexStatement(keyword string, emit TokenType, next stateFn) stateFn {
 	l.pos += len(keyword)
 	l.emit(emit)
 	return next

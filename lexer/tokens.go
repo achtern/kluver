@@ -8,17 +8,19 @@ import (
 	"fmt"
 )
 
+type TokenType int
+
 type Token struct {
-	Typ tokenType
+	Typ TokenType
 	Pos int
 	Val string
 }
 
 func (i Token) String() string {
 	switch i.Typ {
-	case tokenEOF:
-		return "tokenEOF"
-	case tokenError:
+	case TokenEOF:
+		return "TokenEOF"
+	case TokenError:
 		return i.Val
 	}
 
@@ -28,88 +30,86 @@ func (i Token) String() string {
 	return fmt.Sprintf("%s: %q", i.Typ, i.Val)
 }
 
-type tokenType int
-
 const (
-	tokenError tokenType = iota
+	TokenError TokenType = iota
 
-	tokenEOF
-	tokenVoid
-	tokenVersion
-	tokenVersionNumber
-	tokenEndStatement
-	tokenImport
-	tokenImportPath
-	tokenVertex
-	tokenEnd
-	tokenFragment
-	tokenGLSL
-	tokenYield
-	tokenActionVar
-	tokenProvide
-	tokenRequire
-	tokenRequest
-	tokenAction
-	tokenTypeDef
-	tokenNameDec
-	tokenAssign
-	tokenGLSLAction
-	tokenWrite
-	tokenWriteOpenBracket
-	tokenWriteCloseBracket
-	tokenWriteSlot
+	TokenEOF
+	TokenVoid
+	TokenVersion
+	TokenVersionNumber
+	TokenEndStatement
+	TokenImport
+	TokenImportPath
+	TokenVertex
+	TokenEnd
+	TokenFragment
+	TokenGLSL
+	TokenYield
+	TokenActionVar
+	TokenProvide
+	TokenRequire
+	TokenRequest
+	TokenAction
+	TokenTypeDef
+	TokenNameDec
+	TokenAssign
+	TokenGLSLAction
+	TokenWrite
+	TokenWriteOpenBracket
+	TokenWriteCloseBracket
+	TokenWriteSlot
 )
 
-func (i tokenType) String() string {
+func (i TokenType) String() string {
 	switch i {
-	case tokenVoid:
-		return "tokenVoid"
-	case tokenVersion:
-		return "tokenVersion"
-	case tokenVersionNumber:
-		return "tokenVersionNumber"
-	case tokenEndStatement:
-		return "tokenEndStatement"
-	case tokenImport:
-		return "tokenImport"
-	case tokenImportPath:
-		return "tokenImport"
-	case tokenVertex:
-		return "tokenVertex"
-	case tokenEnd:
-		return "tokenEnd"
-	case tokenFragment:
-		return "tokenFragment"
-	case tokenGLSL:
-		return "tokenGLSL"
-	case tokenAction:
-		return "tokenAction"
-	case tokenRequire:
-		return "tokenRequire"
-	case tokenProvide:
-		return "tokenProvide"
-	case tokenRequest:
-		return "tokenRequest"
-	case tokenYield:
-		return "tokenYield"
-	case tokenActionVar:
-		return "tokenActionVar"
-	case tokenTypeDef:
-		return "tokenTypeDef"
-	case tokenNameDec:
-		return "tokenNameDec"
-	case tokenAssign:
-		return "tokenAssign"
-	case tokenGLSLAction:
-		return "tokenGLSLAction"
-	case tokenWrite:
-		return "tokenWrite"
-	case tokenWriteOpenBracket:
-		return "tokenWriteOpenBracket"
-	case tokenWriteCloseBracket:
-		return "tokenWriteCloseBracket"
-	case tokenWriteSlot:
-		return "tokenWriteSlot"
+	case TokenVoid:
+		return "TokenVoid"
+	case TokenVersion:
+		return "TokenVersion"
+	case TokenVersionNumber:
+		return "TokenVersionNumber"
+	case TokenEndStatement:
+		return "TokenEndStatement"
+	case TokenImport:
+		return "TokenImport"
+	case TokenImportPath:
+		return "TokenImport"
+	case TokenVertex:
+		return "TokenVertex"
+	case TokenEnd:
+		return "TokenEnd"
+	case TokenFragment:
+		return "TokenFragment"
+	case TokenGLSL:
+		return "TokenGLSL"
+	case TokenAction:
+		return "TokenAction"
+	case TokenRequire:
+		return "TokenRequire"
+	case TokenProvide:
+		return "TokenProvide"
+	case TokenRequest:
+		return "TokenRequest"
+	case TokenYield:
+		return "TokenYield"
+	case TokenActionVar:
+		return "TokenActionVar"
+	case TokenTypeDef:
+		return "TokenTypeDef"
+	case TokenNameDec:
+		return "TokenNameDec"
+	case TokenAssign:
+		return "TokenAssign"
+	case TokenGLSLAction:
+		return "TokenGLSLAction"
+	case TokenWrite:
+		return "TokenWrite"
+	case TokenWriteOpenBracket:
+		return "TokenWriteOpenBracket"
+	case TokenWriteCloseBracket:
+		return "TokenWriteCloseBracket"
+	case TokenWriteSlot:
+		return "TokenWriteSlot"
 	default:
 		return "unknown"
 	}
