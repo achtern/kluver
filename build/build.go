@@ -20,8 +20,8 @@ type Shader struct {
 type GLSL struct {
 	vertex   string
 	fragment string
-	provides string
-	requests string
+	provides []Tokens
+	requests []Tokens
 }
 
 type varDef struct {
@@ -95,9 +95,17 @@ func Build(tokenStream <-chan lexer.Token) (string, string, error) {
 }
 
 func (shader *Shader) buildVertex() string {
-	return buildGeneric(shader.vertex, shader.version)
+
+	// vertex shader can only provide data to the fragment shader
+	s, p, _ := buildGeneric(shader.vertex, shader.version)
+	shader.compiled.provides = p
+	return s
 }
 
 func (shader *Shader) buildFragment() string {
-	return buildGeneric(shader.fragment, shader.version)
+
+	// fragment shader can only request data from the vertex shader
+	s, _, r := buildGeneric(shader.fragment, shader.version)
+	shader.compiled.requests = r
+	return s
 }

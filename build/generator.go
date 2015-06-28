@@ -10,12 +10,13 @@ import (
 	"strings"
 )
 
-func buildGeneric(tokens Tokens, version string) string {
+func buildGeneric(tokens Tokens, version string) (string, []Tokens, []Tokens) {
 	var sb StringBuffer
 	sb.append(buildHead(version))
 
 	providePlaceholderInserted := false
 	provides := make([]Tokens, 0)
+	requests := make([]Tokens, 0)
 
 	for i := 0; i < len(tokens); i++ {
 		token := tokens[i]
@@ -33,6 +34,7 @@ func buildGeneric(tokens Tokens, version string) string {
 			sb.append(generateProvideSetting(tokens[i+1], tokens[i+2], tokens[i+3], tokens[i+4]))
 			i += 4
 		case lexer.TokenRequest:
+			requests = append(requests, Tokens{tokens[i+1], tokens[i+2]})
 			sb.append(generateRequest(tokens[i+1], tokens[i+2]))
 			i += 2
 		case lexer.TokenYield:
@@ -55,7 +57,7 @@ func buildGeneric(tokens Tokens, version string) string {
 
 	compiled = strings.Replace(compiled, providePlaceholder, generateProvideDecBlock(provides), -1)
 
-	return compiled
+	return compiled, provides, requests
 }
 
 func buildHead(version string) string {
