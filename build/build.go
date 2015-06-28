@@ -7,6 +7,7 @@ package build
 import (
 	"fmt"
 	"github.com/achtern/kluver/lexer"
+	"strings"
 )
 
 type Shader struct {
@@ -28,6 +29,8 @@ type varDef struct {
 }
 
 type Tokens []lexer.Token
+
+const providePlaceholder = "___PROVIDE___REPLACE___HERE___\n"
 
 func (s *Shader) String() string {
 	return fmt.Sprintf("Shader(%s, vertex=%q, fragment=%q, global=%q)", s.version, s.vertex, s.fragment, s.global)
@@ -98,24 +101,34 @@ func (shader *Shader) buildVertex() (string, error) {
 	var sb StringBuffer
 	sb.append(shader.buildHead())
 
+	providePlaceholderInserted := false
 	provides := make([]Tokens, 0)
 
 	for i := 0; i < len(shader.vertex); i++ {
 		token := shader.vertex[i]
 		switch token.Typ {
 		case lexer.TokenRequire:
-			sb.append(generateRequire(token, shader.vertex[i + 1], shader.vertex[i + 2]))
+			if !providePlaceholderInserted {
+				// insert provides before the first uniform
+				sb.append(providePlaceholder)
+				providePlaceholderInserted = true
+			}
+			sb.append(generateRequire(token, shader.vertex[i+1], shader.vertex[i+2]))
 			i += 2
 		case lexer.TokenProvide:
-			provides = append(provides, Tokens{shader.vertex[i + 1], shader.vertex[i + 2]})
-			sb.append(generateProvideSetting(shader.vertex[i + 1], shader.vertex[i + 2], shader.vertex[i + 3], shader.vertex[i + 4]))
+			provides = append(provides, Tokens{shader.vertex[i+1], shader.vertex[i+2]})
+			sb.append(generateProvideSetting(shader.vertex[i+1], shader.vertex[i+2], shader.vertex[i+3], shader.vertex[i+4]))
 			i += 4
 		default:
 			sb.append(token.Val)
 		}
 	}
 
-	return sb.String(), nil
+	compiled := sb.String()
+
+	compiled = strings.Replace(compiled, providePlaceholder, generateProvideDecBlock(provides), -1)
+
+	return compiled, nil
 }
 
 func (shader *Shader) buildFragment() (string, error) {
@@ -128,12 +141,4 @@ func (shader *Shader) buildFragment() (string, error) {
 	}
 
 	return sb.String(), nil
-}
-
-func generateRequire(action, typ, name lexer.Token) string {
-	return fmt.Sprintf("uniform %s %s", typ.Val, name.Val)
-}
-
-func generateProvideSetting(typ, name, assign, glslAction lexer.Token) string {
-	return fmt.Sprintf("%s %s %s %s", typ.Val, name.Val, assign.Val, glslAction.Val)
 }
