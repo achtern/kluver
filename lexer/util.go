@@ -8,6 +8,14 @@ import (
 	"unicode"
 )
 
+func ignoreSpace(l *lexer) {
+	if isSpace(l.next()) {
+		l.ignore()
+	} else {
+		l.backup()
+	}
+}
+
 func isSpace(r rune) bool {
 	return r == ' ' || r == '\t'
 }

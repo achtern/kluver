@@ -142,39 +142,39 @@ func lexAction(l *lexer) stateFn {
 		return lexExport
 	}
 
+	if l.hasPrefix(actionGet) {
+		return lexGet
+	}
+
 	return l.errorf("unclosed action")
 }
 
 func lexRequire(l *lexer) stateFn {
 	l.lexStatement(actionRequire, TokenRequire, nil)
-	if isSpace(l.next()) {
-		l.ignore()
-	}
+	ignoreSpace(l)
 	return lexTypeDef
 }
 
 func lexRequest(l *lexer) stateFn {
 	l.lexStatement(actionRequest, TokenRequest, nil)
-	if isSpace(l.next()) {
-		l.ignore()
-	}
+	ignoreSpace(l)
 	return lexTypeDef
 }
 
 func lexProvide(l *lexer) stateFn {
 	l.lexStatement(actionProvide, TokenProvide, nil)
-	if isSpace(l.next()) {
-		l.ignore()
-	}
+	ignoreSpace(l)
 	return lexTypeDef
 }
 
 func lexExport(l *lexer) stateFn {
 	l.lexStatement(actionExport, TokenExport, nil)
-	if isSpace(l.next()) {
-		l.ignore()
-	}
+	ignoreSpace(l)
 	return lexExportBlockOpen
+}
+
+func lexGet(l *lexer) stateFn {
+	return l.lexStatement(actionGet, TokenGet, lexGLSL)
 }
 
 func lexExportBlockOpen(l *lexer) stateFn {
@@ -207,9 +207,7 @@ func lexTypeDef(l *lexer) stateFn {
 }
 
 func lexNameDec(l *lexer) stateFn {
-	if isSpace(l.next()) {
-		l.ignore()
-	}
+	ignoreSpace(l)
 	for {
 		if l.testPrefix(endStatement, TokenNameDec) {
 			return lexEndStatement
@@ -233,9 +231,7 @@ func lexNameDec(l *lexer) stateFn {
 
 func lexActionAssign(l *lexer) stateFn {
 	l.lexStatement(actionAssign, TokenAssign, nil)
-	if isSpace(l.next()) {
-		l.ignore()
-	}
+	ignoreSpace(l)
 	return lexGLSLAction
 }
 
@@ -257,7 +253,8 @@ func getLexGLSLBlock(token TokenType, next stateFn, blockTerminator, errorMsg st
 			if l.testPrefix(blockTerminator, token) {
 				return next
 			}
-			if !allowLineBreaks && l.next() == '\n' {
+			if !allowLineBreaks && l.peek() == '\n' {
+				l.next()
 				break
 			}
 			if l.next() == eof {
@@ -277,9 +274,7 @@ func lexActionVar(l *lexer) stateFn {
 		return lexEndStatement
 	}
 	for {
-		if isSpace(l.next()) {
-			l.ignore()
-		}
+		ignoreSpace(l)
 		if l.testPrefix(endStatement, TokenActionVar) {
 			return lexEndStatement
 		}

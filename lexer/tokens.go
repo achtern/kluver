@@ -70,6 +70,7 @@ const (
 	TokenExportBlockOpen
 	TokenExportBlockClose
 	TokenExportGLSL
+	TokenGet
 )
 
 func (i TokenType) String() string {
@@ -130,6 +131,8 @@ func (i TokenType) String() string {
 		return "TokenExportBlockClose"
 	case TokenExportGLSL:
 		return "TokenExportGLSL"
+	case TokenGet:
+		return "TokenGet"
 	default:
 		return "unknown"
 	}

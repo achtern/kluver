@@ -15,6 +15,7 @@ const (
 	actionRequest = "request"
 	actionWrite   = "write"
 	actionExport  = "export"
+	actionGet     = "get"
 	actionAssign  = "="
 
 	writeOpenBracket  = "("

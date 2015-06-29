@@ -1,6 +1,6 @@
 #---VERTEX---#
 
-@export {
+@export{
     @provide vec4 position = modelView * vec4(position, 1.0);
 }
 
