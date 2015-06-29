@@ -68,6 +68,38 @@ func New(tokenStream <-chan lexer.Token) BuildStream {
 }
 
 func build(tokenStream <-chan lexer.Token, buildStream BuildStream) {
+	var shader Shader
+
+	done := make(chan Shader)
+	reqPath := make(chan string)
+	go buildShader(tokenStream, reqPath, done, buildStream.Err)
+
+	loop:
+	for {
+		select {
+		case s := <-done:
+			shader = s
+			break loop
+		case path := <-reqPath:
+			libStream := make(chan lexer.Token)
+			buildStream.Request <- LexRequest{path,libStream}
+		}
+	}
+
+	shader.buildVertex()
+	shader.buildFragment()
+
+	for _, request := range shader.compiled.requests {
+		if !contains(shader.compiled.provides, request) {
+			buildStream.Err <- errors.New("Missing @provide statement for <" + request[0].Val + " " + request[1].Val + ">")
+			return
+		}
+	}
+
+	buildStream.Response <- shader
+}
+
+func buildShader(tokenStream <-chan lexer.Token, reqPath chan string, done chan Shader, err chan error) {
 	shader := Shader{}
 
 	shader.global = make(Tokens, 0)
@@ -81,13 +113,12 @@ func build(tokenStream <-chan lexer.Token, buildStream BuildStream) {
 	phase := 0
 	for token := range tokenStream {
 		if token.Typ == lexer.TokenError {
-			buildStream.Err <- errors.New(token.Val)
+			err <- errors.New(token.Val)
 			return
 		}
 
 		if token.Typ == lexer.TokenImportPath {
-			libStream := make(chan lexer.Token)
-			buildStream.Request <- LexRequest{token.Val,libStream}
+			reqPath <- token.Val
 		}
 
 		switch token.Typ {
@@ -126,21 +157,7 @@ func build(tokenStream <-chan lexer.Token, buildStream BuildStream) {
 		}
 	}
 
-	// shader.global = global
-	// shader.vertex = vertex
-	// shader.fragment = fragment
-
-	shader.buildVertex()
-	shader.buildFragment()
-
-	for _, request := range shader.compiled.requests {
-		if !contains(shader.compiled.provides, request) {
-			buildStream.Err <- errors.New("Missing @provide statement for <" + request[0].Val + " " + request[1].Val + ">")
-			return
-		}
-	}
-
-	buildStream.Response <- shader
+	done <- shader
 }
 
 func (shader *Shader) buildVertex() {
