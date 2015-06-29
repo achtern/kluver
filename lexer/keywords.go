@@ -14,8 +14,11 @@ const (
 	actionYield   = "yield"
 	actionRequest = "request"
 	actionWrite   = "write"
+	actionExport  = "export"
 	actionAssign  = "="
 
 	writeOpenBracket  = "("
 	writeCloseBracket = ")"
+	exportBlockOpen   = "{"
+	exportBlockClose  = "}"
 )

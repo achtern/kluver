@@ -48,6 +48,7 @@ const (
 	TokenEndStatement
 	TokenImport
 	TokenImportPath
+	TokenExport
 	TokenVertex
 	TokenEnd
 	TokenFragment
@@ -66,6 +67,9 @@ const (
 	TokenWriteOpenBracket
 	TokenWriteCloseBracket
 	TokenWriteSlot
+	TokenExportBlockOpen
+	TokenExportBlockClose
+	TokenExportGLSL
 )
 
 func (i TokenType) String() string {
@@ -81,7 +85,9 @@ func (i TokenType) String() string {
 	case TokenImport:
 		return "TokenImport"
 	case TokenImportPath:
-		return "TokenImport"
+		return "TokenImportPath"
+	case TokenExport:
+		return "TokenExport"
 	case TokenVertex:
 		return "TokenVertex"
 	case TokenEnd:
@@ -118,6 +124,12 @@ func (i TokenType) String() string {
 		return "TokenWriteCloseBracket"
 	case TokenWriteSlot:
 		return "TokenWriteSlot"
+	case TokenExportBlockOpen:
+		return "TokenExportBlockOpen"
+	case TokenExportBlockClose:
+		return "TokenExportBlockClose"
+	case TokenExportGLSL:
+		return "TokenExportGLSL"
 	default:
 		return "unknown"
 	}

@@ -76,7 +76,7 @@ func build(tokenStream <-chan lexer.Token, buildStream BuildStream) {
 
 	shadersPending := 1
 
-	loop:
+loop:
 	for {
 		select {
 		case s := <-done:
@@ -88,7 +88,7 @@ func build(tokenStream <-chan lexer.Token, buildStream BuildStream) {
 		case path := <-reqPath:
 			shadersPending += 1
 			libStream := make(chan lexer.Token)
-			buildStream.Request <- LexRequest{path,libStream}
+			buildStream.Request <- LexRequest{path, libStream}
 			go buildShader(libStream, reqPath, done, buildStream.Err)
 		}
 	}
@@ -112,7 +112,6 @@ func buildShader(tokenStream <-chan lexer.Token, reqPath chan string, done chan 
 	shader.global = make(Tokens, 0)
 	shader.vertex = make(Tokens, 0)
 	shader.fragment = make(Tokens, 0)
-	
 
 	// phase 0 : global
 	// phase 1 : vertex

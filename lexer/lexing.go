@@ -138,6 +138,10 @@ func lexAction(l *lexer) stateFn {
 		return lexWrite
 	}
 
+	if l.hasPrefix(actionExport) {
+		return lexExport
+	}
+
 	return l.errorf("unclosed action")
 }
 
@@ -163,6 +167,31 @@ func lexProvide(l *lexer) stateFn {
 		l.ignore()
 	}
 	return lexTypeDef
+}
+
+func lexExport(l *lexer) stateFn {
+	l.lexStatement(actionExport, TokenExport, nil)
+	if isSpace(l.next()) {
+		l.ignore()
+	}
+	return lexExportBlockOpen
+}
+
+func lexExportBlockOpen(l *lexer) stateFn {
+	if l.hasPrefix(exportBlockOpen) {
+		return l.lexStatement(exportBlockOpen, TokenExportBlockOpen, getLexGLSLBlock(TokenExportGLSL, lexExportBlockClose, exportBlockClose, "incomplete export block", true))
+	}
+
+	return l.errorf("<%s> expected after export action", exportBlockOpen)
+}
+
+func lexExportBlockClose(l *lexer) stateFn {
+	if l.hasPrefix(exportBlockClose) {
+		return l.lexStatement(exportBlockClose, TokenExportBlockClose, lexGLSL)
+	}
+
+	return l.errorf("<%s> expected after GLSL export", exportBlockClose)
+
 }
 
 func lexTypeDef(l *lexer) stateFn {
@@ -220,6 +249,23 @@ func lexGLSLAction(l *lexer) stateFn {
 		}
 	}
 	return l.errorf("incomplete glsl action assignment")
+}
+
+func getLexGLSLBlock(token TokenType, next stateFn, blockTerminator, errorMsg string, allowLineBreaks bool) stateFn {
+	return func (l *lexer) stateFn {
+		for {
+			if l.testPrefix(blockTerminator, token) {
+				return next
+			}
+			if !allowLineBreaks && l.next() == '\n' {
+				break
+			}
+			if l.next() == eof {
+				break
+			}
+		}
+		return l.errorf(errorMsg)
+	}
 }
 
 func lexYield(l *lexer) stateFn {

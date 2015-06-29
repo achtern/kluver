@@ -14,7 +14,7 @@ import (
 
 func main() {
 
-	dat, err := ioutil.ReadFile("./example.shader")
+	dat, err := ioutil.ReadFile("./fog.slib")
 
 	if err != nil {
 		fmt.Println("Failed to load file.")
@@ -23,6 +23,11 @@ func main() {
 
 	tokens := make(chan lexer.Token)
 	lexer.New("test", string(dat), tokens)
+
+	for token := range tokens {
+		fmt.Println(token)
+	}
+	return
 
 	buildStream := builder.New(tokens)
 
