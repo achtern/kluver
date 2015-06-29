@@ -59,7 +59,7 @@ func (s *Shader) GetFragment() string {
 
 func New(tokenStream <-chan lexer.Token) BuildStream {
 	buildStream := BuildStream{
-		nil,
+		make(chan error),
 		make(chan LexRequest),
 		make(chan Shader),
 	}
@@ -74,15 +74,22 @@ func build(tokenStream <-chan lexer.Token, buildStream BuildStream) {
 	reqPath := make(chan string)
 	go buildShader(tokenStream, reqPath, done, buildStream.Err)
 
+	shadersPending := 1
+
 	loop:
 	for {
 		select {
 		case s := <-done:
+			shadersPending -= 1
 			shader = s
-			break loop
+			if shadersPending == 0 {
+				break loop
+			}
 		case path := <-reqPath:
+			shadersPending += 1
 			libStream := make(chan lexer.Token)
 			buildStream.Request <- LexRequest{path,libStream}
+			go buildShader(libStream, reqPath, done, buildStream.Err)
 		}
 	}
 

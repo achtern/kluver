@@ -29,14 +29,15 @@ func main() {
 	for {
 		select {
 		case err := <-buildStream.Err:
-			panic(err)
+			fmt.Println(err)
+			return
 		case req := <-buildStream.Request:
-			_, err := ioutil.ReadFile(req.Path)
+			lib, err := ioutil.ReadFile(req.Path)
 			if err != nil {
 				fmt.Println(fmt.Sprintf("Failed to lib <%s>", req.Path))
 				return
 			}
-			//lexer.New(req.Path, string(lib), req.Answer)
+			lexer.New(req.Path, string(lib), req.Answer)
 		case rep := <-buildStream.Response:
 			fmt.Println(rep.GetVertex())
 			fmt.Println("-------")
