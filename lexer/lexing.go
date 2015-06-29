@@ -174,7 +174,16 @@ func lexExport(l *lexer) stateFn {
 }
 
 func lexGet(l *lexer) stateFn {
-	return l.lexStatement(actionGet, TokenGet, lexGLSL)
+	return l.lexStatement(
+		actionGet,
+		TokenGet,
+		getLexActionOpenBracket(
+			getLexActionVar(
+				actionCloseBracket,
+				getLexActionCloseBracket(
+					lexGLSL,
+					"<%> expected after get variable")),
+			"<%> expected after get action"))
 }
 
 func lexExportBlockOpen(l *lexer) stateFn {
@@ -247,8 +256,24 @@ func lexGLSLAction(l *lexer) stateFn {
 	return l.errorf("incomplete glsl action assignment")
 }
 
+func lexYield(l *lexer) stateFn {
+	return l.lexStatement(actionYield, TokenYield, getLexActionVar(endStatement, lexEndStatement))
+}
+
+func lexWrite(l *lexer) stateFn {
+	return l.lexStatement(actionWrite, TokenWrite, getLexActionOpenBracket(lexWriteSlot, "<%s> expected after write action"))
+}
+
+func lexWriteSlot(l *lexer) stateFn {
+	if !l.isNumber() {
+		return l.errorf("bad number syntax for write slot: %q", l.input[l.start:l.pos])
+	}
+	l.emit(TokenWriteSlot)
+	return getLexActionCloseBracket(getLexActionVar(endStatement, lexEndStatement), "<%s> expected after write slot action")
+}
+
 func getLexGLSLBlock(token TokenType, next stateFn, blockTerminator, errorMsg string, allowLineBreaks bool) stateFn {
-	return func (l *lexer) stateFn {
+	return func(l *lexer) stateFn {
 		for {
 			if l.testPrefix(blockTerminator, token) {
 				return next
@@ -265,48 +290,38 @@ func getLexGLSLBlock(token TokenType, next stateFn, blockTerminator, errorMsg st
 	}
 }
 
-func lexYield(l *lexer) stateFn {
-	return l.lexStatement(actionYield, TokenYield, lexActionVar)
-}
-
-func lexActionVar(l *lexer) stateFn {
-	if l.hasPrefix(endStatement) {
-		return lexEndStatement
-	}
-	for {
-		ignoreSpace(l)
-		if l.testPrefix(endStatement, TokenActionVar) {
-			return lexEndStatement
+func getLexActionOpenBracket(next stateFn, errorMsg string) stateFn {
+	return func(l *lexer) stateFn {
+		if l.hasPrefix(actionOpenBracket) {
+			return l.lexStatement(actionOpenBracket, TokenActionOpenBracket, next)
 		}
+		return l.errorf(errorMsg, actionOpenBracket)
 	}
-	return lexEndStatement
 }
 
-func lexWrite(l *lexer) stateFn {
-	return l.lexStatement(actionWrite, TokenWrite, lexWriteOpenBracket)
-	return lexWriteOpenBracket
+func getLexActionCloseBracket(next stateFn, errorMsg string) stateFn {
+	return func(l *lexer) stateFn {
+		if l.hasPrefix(actionCloseBracket) {
+			return l.lexStatement(actionCloseBracket, TokenActionCloseBracket, next)
+		}
+
+		return l.errorf(errorMsg, actionCloseBracket)
+	}
 }
 
-func lexWriteOpenBracket(l *lexer) stateFn {
-	if l.hasPrefix(writeOpenBracket) {
-		return l.lexStatement(writeOpenBracket, TokenWriteOpenBracket, lexWriteSlot)
+func getLexActionVar(terminator string, next stateFn) stateFn {
+	return func(l *lexer) stateFn {
+		if l.hasPrefix(terminator) {
+			return next
+		}
+		for {
+			if l.testPrefix(terminator, TokenActionVar) {
+				return next
+			}
+			if isSpace(l.next()) {
+				l.ignore()
+			}
+		}
+		return next
 	}
-
-	return l.errorf("<%s> expected after write action", writeOpenBracket)
-}
-
-func lexWriteCloseBracket(l *lexer) stateFn {
-	if l.hasPrefix(writeCloseBracket) {
-		return l.lexStatement(writeCloseBracket, TokenWriteCloseBracket, lexActionVar)
-	}
-
-	return l.errorf("<%s> expected after write slot", writeCloseBracket)
-}
-
-func lexWriteSlot(l *lexer) stateFn {
-	if !l.isNumber() {
-		return l.errorf("bad number syntax for write slot: %q", l.input[l.start:l.pos])
-	}
-	l.emit(TokenWriteSlot)
-	return lexWriteCloseBracket
 }

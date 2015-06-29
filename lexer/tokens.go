@@ -64,8 +64,8 @@ const (
 	TokenAssign
 	TokenGLSLAction
 	TokenWrite
-	TokenWriteOpenBracket
-	TokenWriteCloseBracket
+	TokenActionOpenBracket
+	TokenActionCloseBracket
 	TokenWriteSlot
 	TokenExportBlockOpen
 	TokenExportBlockClose
@@ -119,10 +119,10 @@ func (i TokenType) String() string {
 		return "TokenGLSLAction"
 	case TokenWrite:
 		return "TokenWrite"
-	case TokenWriteOpenBracket:
-		return "TokenWriteOpenBracket"
-	case TokenWriteCloseBracket:
-		return "TokenWriteCloseBracket"
+	case TokenActionOpenBracket:
+		return "TokenActionOpenBracket"
+	case TokenActionCloseBracket:
+		return "TokenActionCloseBracket"
 	case TokenWriteSlot:
 		return "TokenWriteSlot"
 	case TokenExportBlockOpen:

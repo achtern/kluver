@@ -18,8 +18,8 @@ const (
 	actionGet     = "get"
 	actionAssign  = "="
 
-	writeOpenBracket  = "("
-	writeCloseBracket = ")"
-	exportBlockOpen   = "{"
-	exportBlockClose  = "}"
+	actionOpenBracket  = "("
+	actionCloseBracket = ")"
+	exportBlockOpen    = "{"
+	exportBlockClose   = "}"
 )
