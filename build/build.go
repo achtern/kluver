@@ -5,10 +5,21 @@
 package build
 
 import (
-	"fmt"
 	"errors"
+	"fmt"
 	"github.com/achtern/kluver/lexer"
 )
+
+type BuildStream struct {
+	Err      chan error
+	Request  chan LexRequest
+	Response chan Shader
+}
+
+type LexRequest struct {
+	Path   string
+	Answer chan lexer.Token
+}
 
 type Shader struct {
 	version  string
@@ -38,30 +49,45 @@ func (s *Shader) String() string {
 	return fmt.Sprintf("Shader(%s, vertex=%q, fragment=%q, global=%q)", s.version, s.vertex, s.fragment, s.global)
 }
 
-func Build(tokenStream <-chan lexer.Token) (chan chan lexer.Token, string, string, error) {
+func (s *Shader) GetVertex() string {
+	return s.compiled.vertex
+}
+
+func (s *Shader) GetFragment() string {
+	return s.compiled.fragment
+}
+
+func New(tokenStream <-chan lexer.Token) BuildStream {
+	buildStream := BuildStream{
+		nil,
+		make(chan LexRequest),
+		nil,
+	}
+	go build(tokenStream, buildStream)
+	return buildStream
+}
+
+func build(tokenStream <-chan lexer.Token, buildStream BuildStream) {
 	shader := Shader{}
 
 	shader.global = make(Tokens, 0)
 	shader.vertex = make(Tokens, 0)
 	shader.fragment = make(Tokens, 0)
-
-	neededLibs := make([]string, 0)
-
-
-	requestStream := make(chan chan lexer.Token)
+	
 
 	// phase 0 : global
 	// phase 1 : vertex
 	// phase 2 : fragment
 	phase := 0
 	for token := range tokenStream {
-
 		if token.Typ == lexer.TokenError {
-			return nil, fmt.Sprintf("%d", token.Pos), "", errors.New(token.Val)
+			buildStream.Err <- errors.New(token.Val)
+			return
 		}
 
 		if token.Typ == lexer.TokenImportPath {
-			neededLibs = append(neededLibs, token.Val)
+			libStream := make(chan lexer.Token)
+			buildStream.Request <- LexRequest{token.Val,libStream}
 		}
 
 		switch token.Typ {
@@ -109,13 +135,12 @@ func Build(tokenStream <-chan lexer.Token) (chan chan lexer.Token, string, strin
 
 	for _, request := range shader.compiled.requests {
 		if !contains(shader.compiled.provides, request) {
-			return nil, "", "", errors.New("Missing @provide statement for <" + request[0].Val + " " + request[1].Val + ">")
+			buildStream.Err <- errors.New("Missing @provide statement for <" + request[0].Val + " " + request[1].Val + ">")
+			return
 		}
 	}
 
-	fmt.Println(fmt.Sprintf("The following libs were not loaded: %q", neededLibs))
-
-	return requestStream, shader.compiled.vertex, shader.compiled.fragment, nil
+	fmt.Println(shader.GetVertex())
 }
 
 func (shader *Shader) buildVertex() {

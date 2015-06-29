@@ -21,15 +21,15 @@ type lexer struct {
 
 type stateFn func(*lexer) stateFn
 
-func Lex(name, input string) (*lexer, chan Token) {
+func New(name, input string, target chan Token) *lexer {
 	l := &lexer{
 		name:   name,
 		input:  input,
-		tokens: make(chan Token),
+		tokens: target,
 	}
 
 	go l.run()
-	return l, l.tokens
+	return l
 }
 
 func (l *lexer) run() {

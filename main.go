@@ -6,10 +6,10 @@ package main
 
 import (
 	"fmt"
-	"github.com/achtern/kluver/util"
-	"github.com/achtern/kluver/lexer"
-	builder "github.com/achtern/kluver/build"
 	"io/ioutil"
+
+	builder "github.com/achtern/kluver/build"
+	"github.com/achtern/kluver/lexer"
 )
 
 func main() {
@@ -18,19 +18,29 @@ func main() {
 
 	if err != nil {
 		fmt.Println("Failed to load file.")
+		return
 	}
 
-	_, tokens := lexer.Lex("test", string(dat))
+	tokens := make(chan lexer.Token)
+	lexer.New("test", string(dat), tokens)
 
-	_, vertex, fragment, err := builder.Build(tokens)
-	if err != nil {
-		if vertex != "" {
-			// we have a line number
-			fmt.Println(fmt.Sprintf("Line %d:", util.GetLineFromPos(string(dat), vertex)))
+	buildStream := builder.New(tokens)
+
+	for {
+		select {
+		case err := <-buildStream.Err:
+			panic(err)
+		case req := <-buildStream.Request:
+			lib, err := ioutil.ReadFile(req.Path)
+			if err != nil {
+				fmt.Println("Failed to load lib file.")
+				return
+			}
+			lexer.New(req.Path, string(lib), req.Answer)
+		case rep := <-buildStream.Response:
+			fmt.Println(rep.String())
+			fmt.Println("-------")
+			fmt.Println(rep.String())
 		}
-		panic(err)
 	}
-	fmt.Println(vertex)
-	fmt.Println("-------")
-	fmt.Println(fragment)
 }

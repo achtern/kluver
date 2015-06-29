@@ -6,8 +6,8 @@ package build
 
 import (
 	"bytes"
-	"strings"
 	_ "github.com/achtern/kluver/lexer"
+	"strings"
 )
 
 type StringBuffer struct {
