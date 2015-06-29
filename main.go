@@ -31,16 +31,17 @@ func main() {
 		case err := <-buildStream.Err:
 			panic(err)
 		case req := <-buildStream.Request:
-			lib, err := ioutil.ReadFile(req.Path)
+			_, err := ioutil.ReadFile(req.Path)
 			if err != nil {
-				fmt.Println("Failed to load lib file.")
+				fmt.Println(fmt.Sprintf("Failed to lib <%s>", req.Path))
 				return
 			}
-			lexer.New(req.Path, string(lib), req.Answer)
+			//lexer.New(req.Path, string(lib), req.Answer)
 		case rep := <-buildStream.Response:
-			fmt.Println(rep.String())
+			fmt.Println(rep.GetVertex())
 			fmt.Println("-------")
-			fmt.Println(rep.String())
+			fmt.Println(rep.GetFragment())
+			return
 		}
 	}
 }

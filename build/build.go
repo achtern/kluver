@@ -61,7 +61,7 @@ func New(tokenStream <-chan lexer.Token) BuildStream {
 	buildStream := BuildStream{
 		nil,
 		make(chan LexRequest),
-		nil,
+		make(chan Shader),
 	}
 	go build(tokenStream, buildStream)
 	return buildStream
@@ -140,7 +140,7 @@ func build(tokenStream <-chan lexer.Token, buildStream BuildStream) {
 		}
 	}
 
-	fmt.Println(shader.GetVertex())
+	buildStream.Response <- shader
 }
 
 func (shader *Shader) buildVertex() {
