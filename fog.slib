@@ -57,7 +57,7 @@
 
     @request vec4 position;
 
-    vec4 get(vec4 color)
+    @get(color)
     {
         float fogCoord = abs(position.z/position.w);
         return mix(color, fog.color, getFogFactor(fog, fogCoord));
