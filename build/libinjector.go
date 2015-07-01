@@ -83,7 +83,8 @@ func injectLibFragment(shader *Shader) {
 			var sb StringBuffer
 			for x := range shader.libs {
 				sb.append(fmt.Sprintf(
-					"get%d(%s);", // fn call
+					"%s = get%d(%s);", // fn call
+					shader.fragment[i+1].Val, // actionVar
 					x, // libGetterIdentifier equiv.
 					shader.fragment[i+1].Val)) // actionVar
 			}
