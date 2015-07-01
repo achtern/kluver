@@ -5,8 +5,8 @@
 package util
 
 import (
-	"strings"
 	"strconv"
+	"strings"
 )
 
 func GetLineFromPos(input, pos string) int {
