@@ -124,6 +124,7 @@ loop:
 func (shader *Shader) injectLibs(libs []Lib) {
 	shader.libs = libs
 	injectLibVertex(shader)
+	injectLibFragment(shader)
 }
 
 func (shader *Shader) buildVertex() {

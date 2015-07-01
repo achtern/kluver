@@ -5,6 +5,7 @@
 package build
 
 import (
+"fmt"
 	"github.com/achtern/kluver/lexer"
 )
 
@@ -48,4 +49,51 @@ outer:
 			break
 		}
 	}
+}
+
+func injectLibFragment(shader *Shader) {
+
+	var actionVars Tokens
+
+outer:
+	for {
+		for i := 0; i < len(shader.fragment); i++ {
+			if shader.fragment[i].Typ != lexer.TokenYield {
+				if i == len(shader.fragment)-1 {
+					break outer
+				}
+				continue
+			}
+
+			actionVars = append(actionVars, shader.fragment[i+1])
+		}
+	}
+
+	libGetterIdentifier := 0
+
+	newFragment := make(Tokens, 0)
+
+	include := false
+	for _, lib := range shader.libs {
+		for _, libToken := range lib.fragment {
+			switch libToken.Typ {
+			case lexer.TokenExport:
+				include = true
+				continue
+			case lexer.TokenExportEnd:
+				include = false
+			case lexer.TokenGet:
+				libToken.Val = fmt.Sprintf("vec4 get%d", libGetterIdentifier)
+				libGetterIdentifier += 1
+			}
+			fmt.Println(libToken)
+			if include {
+				newFragment = append(newFragment, libToken)
+			}
+		}
+	}
+
+	newFragment = append(newFragment, shader.fragment...)
+
+	shader.fragment = newFragment
 }
