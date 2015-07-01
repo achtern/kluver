@@ -5,6 +5,7 @@
 package build
 
 import (
+	"errors"
 	"fmt"
 	"github.com/achtern/kluver/lexer"
 	"strings"
@@ -70,6 +71,7 @@ func generateShader(tokenStream <-chan lexer.Token, reqPath chan string, done ch
 	done <- shader
 }
 
+// buildGeneric compiles the generic shader, lib code has been injected already
 func buildGeneric(tokens Tokens, version string) (string, []Tokens, []Tokens) {
 	var sb StringBuffer
 	sb.append(buildHead(version))
