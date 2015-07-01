@@ -92,6 +92,9 @@ func buildGeneric(tokens Tokens, version string) (string, []Tokens, []Tokens) {
 			sb.append(generateRequire(tokens[i+1], tokens[i+2]))
 			i += 2
 		case lexer.TokenProvide:
+			// fmt.Println(tokens)
+			// fmt.Println(len(tokens),i)
+			// fmt.Println(tokens[i],tokens[i+1],tokens[i+2],tokens[i+3],tokens[i+4])
 			provides = append(provides, Tokens{tokens[i+1], tokens[i+2]})
 			sb.append(generateProvideSetting(tokens[i+1], tokens[i+2], tokens[i+3], tokens[i+4]))
 			i += 4

@@ -138,6 +138,10 @@ func lexAction(l *lexer) stateFn {
 		return lexWrite
 	}
 
+	if l.hasPrefix(actionExportEnd) {
+		return lexExportEnd
+	}
+
 	if l.hasPrefix(actionExport) {
 		return lexExport
 	}
@@ -170,7 +174,13 @@ func lexProvide(l *lexer) stateFn {
 func lexExport(l *lexer) stateFn {
 	l.lexStatement(actionExport, TokenExport, nil)
 	ignoreSpace(l)
-	return lexExportBlockOpen
+	return lexGLSL
+}
+
+func lexExportEnd(l *lexer) stateFn {
+	l.lexStatement(actionExportEnd, TokenExportEnd, nil)
+	ignoreSpace(l)
+	return lexGLSL
 }
 
 func lexGet(l *lexer) stateFn {
@@ -184,23 +194,6 @@ func lexGet(l *lexer) stateFn {
 					lexGLSL,
 					"<%> expected after get variable")),
 			"<%> expected after get action"))
-}
-
-func lexExportBlockOpen(l *lexer) stateFn {
-	if l.hasPrefix(exportBlockOpen) {
-		return l.lexStatement(exportBlockOpen, TokenExportBlockOpen, getLexGLSLBlock(TokenExportGLSL, lexExportBlockClose, exportBlockClose, "incomplete export block", true))
-	}
-
-	return l.errorf("<%s> expected after export action", exportBlockOpen)
-}
-
-func lexExportBlockClose(l *lexer) stateFn {
-	if l.hasPrefix(exportBlockClose) {
-		return l.lexStatement(exportBlockClose, TokenExportBlockClose, lexGLSL)
-	}
-
-	return l.errorf("<%s> expected after GLSL export", exportBlockClose)
-
 }
 
 func lexTypeDef(l *lexer) stateFn {

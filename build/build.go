@@ -123,35 +123,7 @@ loop:
 
 func (shader *Shader) injectLibs(libs []Lib) {
 	shader.libs = libs
-	outer:
-	for {
-		for i := 0; i < len(shader.vertex); i++ {
-			if shader.vertex[i].Typ != lexer.TokenYield {
-				if i == len(shader.vertex) - 1 {
-					break outer
-				}
-				continue
-			}
-
-			everythingBefore := shader.vertex[:i]
-			everythingAfter := shader.vertex[i+1:]
-
-			shader.vertex = everythingBefore
-			
-			for _, lib := range shader.libs {
-				for _, libToken := range lib.vertex {
-					fmt.Println(libToken)
-					shader.vertex = append(shader.vertex, libToken)
-				}
-			}
-			
-			shader.vertex = append(shader.vertex, everythingAfter...)
-
-			// break loop
-			// this way we start at the beginning again
-			break
-		}
-	}
+	injectLibVertex(shader)
 }
 
 func (shader *Shader) buildVertex() {
