@@ -6,43 +6,18 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
-
-	builder "github.com/achtern/kluver/build"
-	"github.com/achtern/kluver/lexer"
+	"github.com/achtern/kluver/compiler"
 )
 
 func main() {
-
-	dat, err := ioutil.ReadFile("example.shader")
-
+	shader, err := compiler.New("example.shader", compiler.FileLoader{})
 	if err != nil {
-		fmt.Println("Failed to load file.")
+		fmt.Println(err)
 		return
 	}
 
-	tokens := make(chan lexer.Token)
-	lexer.New("example.shader", string(dat), tokens)
-
-	buildStream := builder.New(tokens)
-
-	for {
-		select {
-		case err := <-buildStream.Err:
-			fmt.Println(err)
-			return
-		case req := <-buildStream.Request:
-			lib, err := ioutil.ReadFile(req.Path)
-			if err != nil {
-				fmt.Println(fmt.Sprintf("Failed to lib <%s>", req.Path))
-				return
-			}
-			lexer.New(req.Path, string(lib), req.Answer)
-		case rep := <-buildStream.Response:
-			fmt.Println(rep.GetVertex())
-			fmt.Println("-------")
-			fmt.Println(rep.GetFragment())
-			return
-		}
-	}
+	fmt.Println("VERTEX--")
+	fmt.Println(shader.GetVertex())
+	fmt.Println("FRAGMENT--")
+	fmt.Println(shader.GetFragment())
 }
