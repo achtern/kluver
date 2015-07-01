@@ -1,13 +1,13 @@
 #---VERTEX---#
 
-@export{
+@export
     @provide vec4 position = modelView * vec4(position, 1.0);
-}
+@exportEnd
 
 #---END---#
 #---FRAGMENT---#
 
-@export {
+@export
 
     #define FOG_DISABLED -1
     #define FOG_LINEAR 0
@@ -63,5 +63,5 @@
         return mix(color, fog.color, getFogFactor(fog, fogCoord));
     }
 
-}
+@exportEnd
 #---END---#
