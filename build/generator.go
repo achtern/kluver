@@ -103,7 +103,8 @@ func buildGeneric(tokens Tokens, version string) (string, []Tokens, []Tokens) {
 			if tokens[i+1].Typ == lexer.TokenActionVar {
 				i += 1
 			}
-			sb.append("// lib support pending")
+			// the value has been replaced by the lib injector
+			sb.append(token.Val)
 			i += 1
 		case lexer.TokenWrite:
 			tmpToken := lexer.Token{lexer.TokenVoid, 0, "fragColor" + tokens[i+2].Val}

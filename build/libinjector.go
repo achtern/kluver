@@ -52,24 +52,6 @@ outer:
 }
 
 func injectLibFragment(shader *Shader) {
-
-	var actionVars Tokens
-
-outer:
-	for {
-		for i := 0; i < len(shader.fragment); i++ {
-			// get action vars
-			if shader.fragment[i].Typ != lexer.TokenYield {
-				if i == len(shader.fragment)-1 {
-					break outer
-				}
-				continue
-			}
-
-			actionVars = append(actionVars, shader.fragment[i+1])
-		}
-	}
-
 	libGetterIdentifier := 0
 
 	newFragment := make(Tokens, 0)
@@ -93,7 +75,19 @@ outer:
 		}
 	}
 
-	newFragment = append(newFragment, shader.fragment...)
+	shader.fragment = append(newFragment, shader.fragment...)
 
-	shader.fragment = newFragment
+	// for every yield token, we have to call the @get functions of all libs
+	for i := 0; i < len(shader.fragment); i++ {
+		if shader.fragment[i].Typ == lexer.TokenYield {
+			var sb StringBuffer
+			for x := range shader.libs {
+				sb.append(fmt.Sprintf(
+					"get%d(%s);", // fn call
+					x, // libGetterIdentifier equiv.
+					shader.fragment[i+1].Val)) // actionVar
+			}
+			shader.fragment[i].Val = sb.String()
+		}
+	}
 }
