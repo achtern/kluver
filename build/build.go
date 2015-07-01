@@ -26,6 +26,7 @@ type Shader struct {
 	vertex   Tokens
 	fragment Tokens
 	global   Tokens
+	libs     []Lib
 	compiled GLSL
 }
 
@@ -34,6 +35,11 @@ type GLSL struct {
 	fragment string
 	provides []Tokens
 	requests []Tokens
+}
+
+type Lib struct {
+	vertex   Tokens
+	fragment Tokens
 }
 
 type varDef struct {
@@ -69,12 +75,12 @@ func New(tokenStream <-chan lexer.Token) BuildStream {
 
 func build(tokenStream <-chan lexer.Token, buildStream BuildStream) {
 	var shader *Shader
-	var libs []Shader
+	var libs []Lib
 
 	done := make(chan Shader)
 	lib := make(chan Shader)
 	reqPath := make(chan string)
-	go buildShader(tokenStream, reqPath, done, buildStream.Err)
+	go generateShader(tokenStream, reqPath, done, buildStream.Err)
 
 	libsPending := 0
 
@@ -88,7 +94,7 @@ loop:
 			}
 		case l := <-lib:
 			libsPending -= 1
-			libs = append(libs, l)
+			libs = append(libs, Lib{l.vertex, l.fragment})
 			if libsPending == 0 && shader != nil {
 				break loop
 			}
@@ -96,9 +102,11 @@ loop:
 			libsPending += 1
 			libStream := make(chan lexer.Token)
 			buildStream.Request <- LexRequest{path, libStream}
-			go buildShader(libStream, reqPath, lib, buildStream.Err)
+			go generateShader(libStream, reqPath, lib, buildStream.Err)
 		}
 	}
+
+	fmt.Println(libs)
 
 	shader.buildVertex()
 	shader.buildFragment()
@@ -111,66 +119,6 @@ loop:
 	}
 
 	buildStream.Response <- *shader
-}
-
-func buildShader(tokenStream <-chan lexer.Token, reqPath chan string, done chan Shader, err chan error) {
-	shader := Shader{}
-
-	shader.global = make(Tokens, 0)
-	shader.vertex = make(Tokens, 0)
-	shader.fragment = make(Tokens, 0)
-
-	// phase 0 : global
-	// phase 1 : vertex
-	// phase 2 : fragment
-	phase := 0
-	for token := range tokenStream {
-		if token.Typ == lexer.TokenError {
-			err <- errors.New(token.Val)
-			return
-		}
-
-		if token.Typ == lexer.TokenImportPath {
-			reqPath <- token.Val
-		}
-
-		switch token.Typ {
-		case lexer.TokenVertex:
-			phase = 1
-			continue
-		case lexer.TokenFragment:
-			phase = 2
-			continue
-		case lexer.TokenEnd:
-			phase = 0
-			continue
-		case lexer.TokenVoid:
-			continue
-		}
-
-		if token.Typ == lexer.TokenVersionNumber {
-			shader.version = token.Val
-			continue
-		}
-
-		if token.Typ == lexer.TokenAction {
-			// we do need the action tokens after lexing
-			continue
-		}
-
-		switch phase {
-		case 0:
-			shader.global = append(shader.global, token)
-		case 1:
-			shader.vertex = append(shader.vertex, token)
-		case 2:
-			shader.fragment = append(shader.fragment, token)
-		default:
-			panic("unknow phase")
-		}
-	}
-
-	done <- shader
 }
 
 func (shader *Shader) buildVertex() {
