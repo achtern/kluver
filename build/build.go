@@ -68,28 +68,35 @@ func New(tokenStream <-chan lexer.Token) BuildStream {
 }
 
 func build(tokenStream <-chan lexer.Token, buildStream BuildStream) {
-	var shader Shader
+	var shader *Shader
+	var libs []Shader
 
 	done := make(chan Shader)
+	lib := make(chan Shader)
 	reqPath := make(chan string)
 	go buildShader(tokenStream, reqPath, done, buildStream.Err)
 
-	shadersPending := 1
+	libsPending := 0
 
 loop:
 	for {
 		select {
 		case s := <-done:
-			shadersPending -= 1
-			shader = s
-			if shadersPending == 0 {
+			shader = &s
+			if libsPending == 0 {
+				break loop
+			}
+		case l := <-lib:
+			libsPending -= 1
+			libs = append(libs, l)
+			if libsPending == 0 && shader != nil {
 				break loop
 			}
 		case path := <-reqPath:
-			shadersPending += 1
+			libsPending += 1
 			libStream := make(chan lexer.Token)
 			buildStream.Request <- LexRequest{path, libStream}
-			go buildShader(libStream, reqPath, done, buildStream.Err)
+			go buildShader(libStream, reqPath, lib, buildStream.Err)
 		}
 	}
 
@@ -103,7 +110,7 @@ loop:
 		}
 	}
 
-	buildStream.Response <- shader
+	buildStream.Response <- *shader
 }
 
 func buildShader(tokenStream <-chan lexer.Token, reqPath chan string, done chan Shader, err chan error) {
