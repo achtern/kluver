@@ -23,8 +23,10 @@ func main() {
 		os.Exit(1)
 	}
 
+	shaderSourcePath := tail[0]
 
-	shader, err := compiler.New("example.shader", *includePath, compiler.FileLoader{})
+
+	shader, err := compiler.New(shaderSourcePath, *includePath, compiler.FileLoader{})
 	if err != nil {
 		fmt.Println(err)
 		return
