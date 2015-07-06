@@ -47,7 +47,7 @@ func generateShader(tokenStream <-chan lexer.Token, reqPath chan string, done ch
 		}
 
 		if token.Typ == lexer.TokenVersionNumber {
-			shader.version = token.Val
+			shader.Version = token.Val
 			continue
 		}
 
@@ -74,7 +74,7 @@ func generateShader(tokenStream <-chan lexer.Token, reqPath chan string, done ch
 // buildGeneric compiles the generic shader, lib code has been injected already
 func buildGeneric(tokens Tokens, version string) (string, []Tokens, []Tokens) {
 	var sb StringBuffer
-	sb.append(buildHead(version))
+	sb.Append(buildHead(version))
 
 	providePlaceholderInserted := false
 	provides := make([]Tokens, 0)
@@ -86,33 +86,33 @@ func buildGeneric(tokens Tokens, version string) (string, []Tokens, []Tokens) {
 		case lexer.TokenRequire:
 			if !providePlaceholderInserted {
 				// insert provides before the first uniform
-				sb.append(providePlaceholder)
+				sb.Append(providePlaceholder)
 				providePlaceholderInserted = true
 			}
-			sb.append(generateRequire(tokens[i+1], tokens[i+2]))
+			sb.Append(generateRequire(tokens[i+1], tokens[i+2]))
 			i += 2
 		case lexer.TokenProvide:
 			provides = append(provides, Tokens{tokens[i+1], tokens[i+2]})
-			sb.append(generateProvideSetting(tokens[i+1], tokens[i+2], tokens[i+3], tokens[i+4]))
+			sb.Append(generateProvideSetting(tokens[i+1], tokens[i+2], tokens[i+3], tokens[i+4]))
 			i += 4
 		case lexer.TokenRequest:
 			requests = append(requests, Tokens{tokens[i+1], tokens[i+2]})
-			sb.append(generateRequest(tokens[i+1], tokens[i+2]))
+			sb.Append(generateRequest(tokens[i+1], tokens[i+2]))
 			i += 2
 		case lexer.TokenYield:
 			if tokens[i+1].Typ == lexer.TokenActionVar {
 				i += 1
 			}
 			// the value has been replaced by the lib injector
-			sb.append(token.Val)
+			sb.Append(token.Val)
 			i += 1
 		case lexer.TokenWrite:
 			tmpToken := lexer.Token{lexer.TokenVoid, 0, "fragColor" + tokens[i+2].Val}
 			provides = append(provides, Tokens{tmpToken, tokens[i+4]})
-			sb.append(generateWriteAssignment("fragColor", tokens[i+2], tokens[i+4]))
+			sb.Append(generateWriteAssignment("fragColor", tokens[i+2], tokens[i+4]))
 			i += 4
 		default:
-			sb.append(token.Val)
+			sb.Append(token.Val)
 		}
 	}
 
@@ -138,7 +138,7 @@ func generateProvideSetting(typ, name, assign, glslAction lexer.Token) string {
 func generateProvideDecBlock(provides []Tokens) string {
 	var sb StringBuffer
 	for _, tokens := range provides {
-		sb.append(generateProvideDec(tokens[0], tokens[1]))
+		sb.Append(generateProvideDec(tokens[0], tokens[1]))
 	}
 
 	return sb.String()

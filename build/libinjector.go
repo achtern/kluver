@@ -82,7 +82,7 @@ func injectLibFragment(shader *Shader) {
 		if shader.fragment[i].Typ == lexer.TokenYield {
 			var sb StringBuffer
 			for x := range shader.libs {
-				sb.append(fmt.Sprintf(
+				sb.Append(fmt.Sprintf(
 					"%s = get%d(%s);",        // fn call
 					shader.fragment[i+1].Val, // actionVar
 					x, // libGetterIdentifier equiv.

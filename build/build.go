@@ -22,22 +22,22 @@ type LexRequest struct {
 }
 
 type Shader struct {
-	version  string
+	Version  string
 	vertex   Tokens
 	fragment Tokens
 	global   Tokens
-	libs     []Lib
-	compiled GLSL
+	libs     []lib
+	compiled glsl
 }
 
-type GLSL struct {
+type glsl struct {
 	vertex   string
 	fragment string
 	provides []Tokens
 	requests []Tokens
 }
 
-type Lib struct {
+type lib struct {
 	vertex   Tokens
 	fragment Tokens
 }
@@ -52,7 +52,7 @@ type Tokens []lexer.Token
 const providePlaceholder = "___PROVIDE___REPLACE___HERE___\n"
 
 func (s *Shader) String() string {
-	return fmt.Sprintf("Shader(%s, vertex=%q, fragment=%q, global=%q)", s.version, s.vertex, s.fragment, s.global)
+	return fmt.Sprintf("Shader(%s, vertex=%q, fragment=%q, global=%q)", s.Version, s.vertex, s.fragment, s.global)
 }
 
 func (s *Shader) GetVertex() string {
@@ -75,26 +75,26 @@ func New(tokenStream <-chan lexer.Token) BuildStream {
 
 func build(tokenStream <-chan lexer.Token, buildStream BuildStream) {
 	var shader *Shader
-	var libs []Lib
+	var libs []lib
 
-	done := make(chan Shader)
-	lib := make(chan Shader)
+	mainResponse := make(chan Shader)
+	libResponse := make(chan Shader)
 	reqPath := make(chan string)
-	go generateShader(tokenStream, reqPath, done, buildStream.Err)
+	go generateShader(tokenStream, reqPath, mainResponse, buildStream.Err)
 
 	libsPending := 0
 
 loop:
 	for {
 		select {
-		case s := <-done:
+		case s := <-mainResponse:
 			shader = &s
 			if libsPending == 0 {
 				break loop
 			}
-		case l := <-lib:
+		case l := <-libResponse:
 			libsPending -= 1
-			libs = append(libs, Lib{l.vertex, l.fragment})
+			libs = append(libs, lib{l.vertex, l.fragment})
 			if libsPending == 0 && shader != nil {
 				break loop
 			}
@@ -102,7 +102,7 @@ loop:
 			libsPending += 1
 			libStream := make(chan lexer.Token)
 			buildStream.Request <- LexRequest{path, libStream}
-			go generateShader(libStream, reqPath, lib, buildStream.Err)
+			go generateShader(libStream, reqPath, libResponse, buildStream.Err)
 		}
 	}
 
@@ -112,7 +112,7 @@ loop:
 	shader.buildFragment()
 
 	for _, request := range shader.compiled.requests {
-		if !contains(shader.compiled.provides, request) {
+		if !Contains(shader.compiled.provides, request) {
 			buildStream.Err <- errors.New("Missing @provide statement for <" + request[0].Val + " " + request[1].Val + ">")
 			return
 		}
@@ -121,7 +121,7 @@ loop:
 	buildStream.Response <- *shader
 }
 
-func (shader *Shader) injectLibs(libs []Lib) {
+func (shader *Shader) injectLibs(libs []lib) {
 	shader.libs = libs
 	injectLibVertex(shader)
 	injectLibFragment(shader)
@@ -130,7 +130,7 @@ func (shader *Shader) injectLibs(libs []Lib) {
 func (shader *Shader) buildVertex() {
 
 	// vertex shader can only provide data to the fragment shader
-	s, p, _ := buildGeneric(shader.vertex, shader.version)
+	s, p, _ := buildGeneric(shader.vertex, shader.Version)
 	shader.compiled.vertex = s
 	shader.compiled.provides = p
 }
@@ -138,7 +138,7 @@ func (shader *Shader) buildVertex() {
 func (shader *Shader) buildFragment() {
 
 	// fragment shader can only request data from the vertex shader
-	s, _, r := buildGeneric(shader.fragment, shader.version)
+	s, _, r := buildGeneric(shader.fragment, shader.Version)
 	shader.compiled.fragment = s
 	shader.compiled.requests = r
 }
