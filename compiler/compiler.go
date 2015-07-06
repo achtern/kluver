@@ -6,9 +6,9 @@ package compiler
 
 import (
 	"errors"
-	"strings"
 	builder "github.com/achtern/kluver/build"
 	"github.com/achtern/kluver/lexer"
+	"github.com/achtern/kluver/util"
 )
 
 func New(path, includePath string,loader FileLoader) (*builder.Shader, error) {
@@ -18,9 +18,7 @@ func New(path, includePath string,loader FileLoader) (*builder.Shader, error) {
 	}
 
 	// prepare includePath
-	if !strings.HasSuffix(includePath, "/") {
-		includePath = includePath + "/"
-	}
+	includePath = util.AddTrailingSlash(includePath)
 
 	// initial
 	tokens := make(chan lexer.Token)
