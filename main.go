@@ -37,11 +37,11 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Prepare exportPath
-	cleanExportPath := util.AddTrailingSlash(*exportPath)
+	// prepare file name
+	exportFileName := util.GetSubStringUpTo(shaderSourcePath, '.')
 
-	vertErr := export.WriteFile(shader.GetVertex(), cleanExportPath + "example" + *vertexTargetSuffix)
-	fragErr := export.WriteFile(shader.GetFragment(), cleanExportPath + "example" + *fragmentTargetSuffix)
+	vertErr := export.WriteFile(shader.GetVertex(), util.ConstructFileName(*exportPath, exportFileName, *vertexTargetSuffix))
+	fragErr := export.WriteFile(shader.GetFragment(), util.ConstructFileName(*exportPath, exportFileName, *fragmentTargetSuffix))
 
 	if vertErr != nil {
 		fmt.Fprintf(os.Stderr, "error writing vertex destination file:\n%q\n", vertErr)

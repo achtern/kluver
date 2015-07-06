@@ -21,3 +21,18 @@ func AddTrailingSlash(input string) string {
 	}
 	return input + "/"
 }
+
+func GetSubStringUpTo(input string, breaker rune) string {
+	for i, r := range input {
+		if r == breaker {
+			return input[:i]
+		}
+	}
+
+	return input
+}
+
+func ConstructFileName(path, name, suffix string) string {
+	path = AddTrailingSlash(path)
+	return path + name + suffix
+}
