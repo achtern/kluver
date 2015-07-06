@@ -14,3 +14,10 @@ func GetLineFromPos(input, pos string) int {
 	// add one, since line numbers do not start at zero
 	return strings.Count(input[0:upper], "\n") + 1
 }
+
+func AddTrailingSlash(input string) string {
+	if strings.HasSuffix(input, "/") {
+		return input
+	}
+	return input + "/"
+}

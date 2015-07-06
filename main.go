@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"os"
 	"github.com/achtern/kluver/compiler"
+	"github.com/achtern/kluver/util"
 	"github.com/achtern/kluver/export"
 )
 
@@ -17,6 +18,7 @@ func main() {
 	includePath := flag.String("include-path", "./", "path prefix for all imported libs")
 	vertexTargetSuffix := flag.String("vertex-target-suffix", "_vert.glsl", "suffix for the generated vertex shader")
 	fragmentTargetSuffix := flag.String("fragment-target-suffix", "_frag.glsl", "suffix for the generated fragment shader")
+	exportPath := flag.String("export-path", "./", "destination path for generated glsl files")
 	flag.Parse()
 
 	tail := flag.Args();
@@ -35,6 +37,19 @@ func main() {
 		return
 	}
 
-	export.WriteFile(shader.GetVertex(), "example" + *vertexTargetSuffix)
-	export.WriteFile(shader.GetFragment(), "example" + *fragmentTargetSuffix)
+	// Prepare exportPath
+	cleanExportPath := util.AddTrailingSlash(*exportPath)
+
+	vertErr := export.WriteFile(shader.GetVertex(), cleanExportPath + "example" + *vertexTargetSuffix)
+	fragErr := export.WriteFile(shader.GetFragment(), cleanExportPath + "example" + *fragmentTargetSuffix)
+
+	if vertErr != nil {
+		fmt.Fprintf(os.Stderr, "error writing vertex destination file:\n%q\n", vertErr)
+	}
+	if fragErr != nil {
+		fmt.Fprintf(os.Stderr, "error writing fragment destination file:\n%q\n", fragErr)
+	}
+	if vertErr != nil || fragErr != nil {
+		os.Exit(1)
+	}
 }
