@@ -9,11 +9,14 @@ import (
 	"fmt"
 	"os"
 	"github.com/achtern/kluver/compiler"
+	"github.com/achtern/kluver/export"
 )
 
 func main() {
 
 	includePath := flag.String("include-path", "./", "path prefix for all imported libs")
+	vertexTargetSuffix := flag.String("vertex-target-suffix", ".gvs", "suffix for the generated vertex shader")
+	fragmentTargetSuffix := flag.String("fragment-target-suffix", ".gfs", "suffix for the generated fragment shader")
 	flag.Parse()
 
 	tail := flag.Args();
@@ -32,8 +35,6 @@ func main() {
 		return
 	}
 
-	fmt.Println("VERTEX--")
-	fmt.Println(shader.GetVertex())
-	fmt.Println("FRAGMENT--")
-	fmt.Println(shader.GetFragment())
+	export.WriteFile(shader.GetVertex(), "example" + *vertexTargetSuffix)
+	export.WriteFile(shader.GetFragment(), "example" + *fragmentTargetSuffix)
 }
