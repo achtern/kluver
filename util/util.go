@@ -9,12 +9,20 @@ import (
 	"strings"
 )
 
+// GetLineFromPos gives the line number, in which the Xth character is
+// the pos string will be converted to an integer
 func GetLineFromPos(input, pos string) int {
 	upper, _ := strconv.Atoi(pos)
-	// add one, since line numbers do not start at zero
-	return strings.Count(input[0:upper], "\n") + 1
+	return GetLineFromPosInt(input, upper)
 }
 
+func GetLineFromPosInt(input string, pos int) int {
+	// add one, since line numbers do not start at zero
+	return strings.Count(input[0:pos], "\n") + 1
+}
+
+// AddTrailingSlash adds a slash '/' to the end of the given string, if
+// there isn't one yet at the end
 func AddTrailingSlash(input string) string {
 	if strings.HasSuffix(input, "/") {
 		return input
