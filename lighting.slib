@@ -1,6 +1,6 @@
 #---FRAGMENT---#
 
-@global {
+@export
     struct BaseLight
     {
         vec3 color;
@@ -86,20 +86,19 @@
     	return color;
     }
 
-}
+@exportEnd
 
-@template base {
+@template base ->
     @require vec3 eyePos;
     @require float specularIntensity;
     @require float specularPower;
 
     @request vec2 normal;
     @request vec3 worldPos;
-}
+@templateEnd
 
 
-# '&' indicates to not include @global block!
-@export ambient & {
+@supply ambient ->
 
     @require AmbientLight ambient;
 
@@ -108,14 +107,14 @@
         vec4 color;
     };
 
-    vec4 get(vec4 color)
+    @get(color)
     {
         return color * ambient.color;
     }
 
-}
+@supplyEnd
 
-@export directional : base {
+@supply directional : base ->
 
     struct DirectionalLight
     {
@@ -125,14 +124,14 @@
 
     @require DirectionalLight directionalLight;
 
-    vec4 get(vec4 color)
+    @get(color)
     {
     	return color * CalcLight(directionalLight.base, directionalLight.direction, normal, worldPos, eyePos, specularIntensity, specularPower);
     }
 
-}
+@supplyEnd
 
-@export point : base {
+@supply point : base ->
 
     struct PointLight
     {
@@ -144,14 +143,14 @@
 
     @require PointLight pointLight;
 
-    vec4 get(vec4 color)
+    @get(color)
     {
         return color * CalcPointLight(pointLight, normal, worldPos, eyePos, specularIntensity, specularPower);
     }
 
-}
+@supplyEnd
 
-@export spot : base {
+@supply spot : base ->
 
     struct SpotLight
     {
@@ -162,10 +161,10 @@
 
     @require SpotLight spotLight;
 
-    vec4 get(vec4 color)
+    @get(color)
     {
         return color * CalcSpotLight(spotLight, normal, worldPos, eyePos, specularIntensity, specularPower);
     }
-}
+@supplyEnd
 
 #---END---#
