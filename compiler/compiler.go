@@ -6,14 +6,20 @@ package compiler
 
 import (
 	"errors"
+	"strings"
 	builder "github.com/achtern/kluver/build"
 	"github.com/achtern/kluver/lexer"
 )
 
-func New(path string, loader FileLoader) (*builder.Shader, error) {
+func New(path, includePath string,loader FileLoader) (*builder.Shader, error) {
 	raw, err := loader.Get(path)
 	if err != nil {
 		return nil, err
+	}
+
+	// prepare includePath
+	if !strings.HasSuffix(includePath, "/") {
+		includePath = includePath + "/"
 	}
 
 	// initial
@@ -27,7 +33,7 @@ func New(path string, loader FileLoader) (*builder.Shader, error) {
 		case err := <-buildStream.Err:
 			return nil, err
 		case req := <-buildStream.Request:
-			lib, err := loader.Get(req.Path)
+			lib, err := loader.Get(includePath + req.Path)
 			if err != nil {
 				return nil, errors.New("Failed to lib <" + req.Path + ">")
 			}

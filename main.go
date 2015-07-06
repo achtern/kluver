@@ -5,12 +5,26 @@
 package main
 
 import (
+	"flag"
 	"fmt"
+	"os"
 	"github.com/achtern/kluver/compiler"
 )
 
 func main() {
-	shader, err := compiler.New("example.shader", compiler.FileLoader{})
+
+	includePath := flag.String("include-path", "./", "path prefix for all imported libs")
+	flag.Parse()
+
+	tail := flag.Args();
+	
+	if len(tail) == 0 {
+		fmt.Fprintf(os.Stderr, "missing path to shader source file\n")
+		os.Exit(1)
+	}
+
+
+	shader, err := compiler.New("example.shader", *includePath, compiler.FileLoader{})
 	if err != nil {
 		fmt.Println(err)
 		return
