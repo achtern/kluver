@@ -15,8 +15,8 @@ import (
 func main() {
 
 	includePath := flag.String("include-path", "./", "path prefix for all imported libs")
-	vertexTargetSuffix := flag.String("vertex-target-suffix", ".gvs", "suffix for the generated vertex shader")
-	fragmentTargetSuffix := flag.String("fragment-target-suffix", ".gfs", "suffix for the generated fragment shader")
+	vertexTargetSuffix := flag.String("vertex-target-suffix", "_vert.glsl", "suffix for the generated vertex shader")
+	fragmentTargetSuffix := flag.String("fragment-target-suffix", "_frag.glsl", "suffix for the generated fragment shader")
 	flag.Parse()
 
 	tail := flag.Args();
