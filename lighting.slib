@@ -1,0 +1,171 @@
+#---FRAGMENT---#
+
+@global {
+    struct BaseLight
+    {
+        vec3 color;
+        float intensity;
+    };
+
+    struct Attenuation
+    {
+        float constant;
+        float linear;
+        float exponent;
+    };
+
+    vec4 CalcLight(BaseLight base, vec3 direction, vec3 normal, vec3 worldPos, vec3 eyePos, float specularIntensity, float specularPower)
+    {
+    	float diffuseFactor = dot(normal, -direction);
+
+    	vec4 diffuseColor = vec4(0,0,0,0);
+    	vec4 specularColor = vec4(0,0,0,0);
+
+    	if (diffuseFactor > 0) {
+    		diffuseColor = vec4(base.color, 1.0) * base.intensity * diffuseFactor;
+
+    		vec3 eyeDir = normalize(eyePos - worldPos);
+
+    		// Phong Lighting Model
+    		vec3 reflectionDir = normalize(reflect(direction, normal));
+    		float specularFactor = dot(eyeDir, reflectionDir);
+
+    		// Almost Phong, but cheaper! ;)
+    		// vec3 halfDir = normalize(eyeDir - direction);
+    		// float specularFactor = dot(halfDir, normal);
+
+    		specularFactor = pow(specularFactor, specularPower);
+
+    		if (specularFactor > 0) {
+    			specularColor = vec4(base.color, 1.0) * specularIntensity * specularFactor;
+    		}
+    	}
+
+    	return diffuseColor + specularColor;
+    }
+
+    vec4 CalcPointLight(PointLight pointLight, vec3 normal, vec3 worldPos, vec3 eyePos, float specularIntensity, float specularPower)
+    {
+    	vec3 lightDir = worldPos - pointLight.position;
+    	float distance2Point = length(lightDir);
+
+    	if (distance2Point > pointLight.range) {
+    	    return vec4(0, 0, 0, 0);
+    	}
+
+    	lightDir = normalize(lightDir);
+
+    	vec4 color =  CalcLight(pointLight.base, lightDir, normal, worldPos, eyePos, specularIntensity, specularPower);
+
+    	float attenuation = pointLight.attenuation.constant +
+    						pointLight.attenuation.linear * distance2Point +
+    						pointLight.attenuation.exponent * distance2Point * distance2Point +
+    						0.0001f; // Make calc division by 0 safe.
+
+    	return color / attenuation;
+    }
+
+    vec4 CalcDirectionalLight(DirectionalLight directionalLight, vec3 normal, vec3 worldPos, vec3 eyePos, float specularIntensity, float specularPower)
+    {
+    	return CalcLight(directionalLight.base, directionalLight.direction, normal, worldPos, eyePos, specularIntensity, specularPower);
+    }
+
+    vec4 CalcSpotLight(SpotLight spotLight, vec3 normal, vec3 worldPos, vec3 eyePos, float specularIntensity, float specularPower)
+    {
+    	vec3 dir = normalize(worldPos - spotLight.pointLight.position);
+    	float factor = dot(dir, spotLight.direction);
+
+    	vec4 color = vec4(0, 0, 0, 0);
+
+    	if (factor > spotLight.cutoff) {
+    		color = CalcPointLight(spotLight.pointLight, normal, worldPos, eyePos, specularIntensity, specularPower);
+    		// Fuzzy edges!
+    		color = color  * (1.0 - (1.0 - factor) / (1.0 - spotLight.cutoff));
+    	}
+
+    	return color;
+    }
+
+}
+
+@template base {
+    @require vec3 eyePos;
+    @require float specularIntensity;
+    @require float specularPower;
+
+    @request vec2 normal;
+    @request vec3 worldPos;
+}
+
+
+# '&' indicates to not include @global block!
+@export ambient & {
+
+    @require AmbientLight ambient;
+
+    struct AmbientLight
+    {
+        vec4 color;
+    };
+
+    vec4 get(vec4 color)
+    {
+        return color * ambient.color;
+    }
+
+}
+
+@export directional : base {
+
+    struct DirectionalLight
+    {
+        BaseLight base;
+        vec3 direction;
+    };
+
+    @require DirectionalLight directionalLight;
+
+    vec4 get(vec4 color)
+    {
+    	return color * CalcLight(directionalLight.base, directionalLight.direction, normal, worldPos, eyePos, specularIntensity, specularPower);
+    }
+
+}
+
+@export point : base {
+
+    struct PointLight
+    {
+        BaseLight base;
+        Attenuation attenuation;
+        vec3 position;
+        float range;
+    };
+
+    @require PointLight pointLight;
+
+    vec4 get(vec4 color)
+    {
+        return color * CalcPointLight(pointLight, normal, worldPos, eyePos, specularIntensity, specularPower);
+    }
+
+}
+
+@export spot : base {
+
+    struct SpotLight
+    {
+        PointLight pointLight;
+        vec3 direction;
+        float cutoff;
+    };
+
+    @require SpotLight spotLight;
+
+    vec4 get(vec4 color)
+    {
+        return color * CalcSpotLight(spotLight, normal, worldPos, eyePos, specularIntensity, specularPower);
+    }
+}
+
+#---END---#
