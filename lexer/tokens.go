@@ -45,9 +45,12 @@ const (
 	TokenVoid
 	TokenVersion
 	TokenVersionNumber
+	TokenExtends
+	TokenExtendsName
 	TokenEndStatement
 	TokenImport
 	TokenImportPath
+	TokenUse
 	TokenExport
 	TokenExportEnd
 	TokenVertex
@@ -79,12 +82,18 @@ func (i TokenType) String() string {
 		return "TokenVersion"
 	case TokenVersionNumber:
 		return "TokenVersionNumber"
+	case TokenExtends:
+		return "TokenExtends"
+	case TokenExtendsName:
+		return "TokenExtendsName"
 	case TokenEndStatement:
 		return "TokenEndStatement"
 	case TokenImport:
 		return "TokenImport"
 	case TokenImportPath:
 		return "TokenImportPath"
+	case TokenUse:
+		return "TokenUse"
 	case TokenExport:
 		return "TokenExport"
 	case TokenExportEnd:

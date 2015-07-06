@@ -4,7 +4,9 @@ const (
 	eof             = -1
 	endStatement    = ";"
 	version         = "#version"
+	extends         = "#extends"
 	importLib       = "@import"
+	useLib = "@use"
 	vertex          = "#---VERTEX---#"
 	fragment        = "#---FRAGMENT---#"
 	end             = "#---END---#"

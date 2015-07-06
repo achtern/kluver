@@ -9,6 +9,9 @@ func lexVoid(l *lexer) stateFn {
 		if l.testPrefix(version, TokenVoid) {
 			return lexVersion
 		}
+		if l.testPrefix(extends, TokenVoid) {
+			return lexExtends
+		}
 		if l.testPrefix(importLib, TokenVoid) {
 			return lexImport
 		}
@@ -17,6 +20,9 @@ func lexVoid(l *lexer) stateFn {
 		}
 		if l.testPrefix(fragment, TokenVoid) {
 			return lexFragment
+		}
+		if l.testPrefix(useLib, TokenVoid) {
+			return lexUse
 		}
 		if l.next() == eof {
 			break
@@ -49,6 +55,27 @@ func lexVersionNumber(l *lexer) stateFn {
 	}
 	l.emit(TokenVersionNumber)
 	return lexVoid
+}
+
+func lexExtends(l *lexer) stateFn {
+	return l.lexStatement(extends, TokenExtends, lexExtendsName)
+}
+
+func lexExtendsName(l *lexer) stateFn {
+	for {
+		switch r := l.next(); {
+		case isSpace(r):
+			l.ignore()
+		case r == eof:
+			return l.errorf("unclosed #extends statement")
+		case r == '\n':
+			l.backup() // we do not want to have the line break in the name
+			l.emit(TokenExtendsName)
+			l.next() // advance forward
+			l.ignore() // and ignore the line break
+			return lexVoid
+		}
+	}
 }
 
 func lexEndStatementVoid(l *lexer) stateFn {
@@ -86,6 +113,15 @@ func lexImportPath(l *lexer) stateFn {
 		}
 		return l.errorf("unclosed import statement")
 	}
+}
+
+func lexUse(l *lexer) stateFn {
+	return l.lexStatement(useLib, TokenUse, lexUseName)
+}
+
+func lexUseName(l *lexer) stateFn {
+	// TODO: fix me
+	return lexVoid
 }
 
 func lexVertex(l *lexer) stateFn {

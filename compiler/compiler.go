@@ -5,6 +5,7 @@
 package compiler
 
 import (
+	"fmt"
 	"errors"
 	builder "github.com/achtern/kluver/build"
 	"github.com/achtern/kluver/lexer"
@@ -23,6 +24,10 @@ func New(path, includePath string,loader FileLoader) (*builder.Shader, error) {
 	// initial
 	tokens := make(chan lexer.Token)
 	lexer.New(path, raw, tokens)
+
+	for t := range tokens {
+		fmt.Println(t)
+	}
 
 	buildStream := builder.New(tokens)
 
