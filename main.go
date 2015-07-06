@@ -33,8 +33,8 @@ func main() {
 
 	shader, err := compiler.New(shaderSourcePath, *includePath, compiler.FileLoader{})
 	if err != nil {
-		fmt.Println(err)
-		return
+		fmt.Fprintf(os.Stderr, "%q\n", err)
+		os.Exit(1)
 	}
 
 	// Prepare exportPath

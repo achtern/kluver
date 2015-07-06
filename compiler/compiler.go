@@ -33,7 +33,7 @@ func New(path, includePath string,loader FileLoader) (*builder.Shader, error) {
 		case req := <-buildStream.Request:
 			lib, err := loader.Get(includePath + req.Path)
 			if err != nil {
-				return nil, errors.New("Failed to lib <" + req.Path + ">")
+				return nil, errors.New("Failed to load lib <" + req.Path + ">")
 			}
 			lexer.New(req.Path, lib, req.Answer)
 		case rep := <-buildStream.Response:
