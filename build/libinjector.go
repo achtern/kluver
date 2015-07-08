@@ -53,6 +53,8 @@ outer:
 
 func injectLibFragment(shader *Shader, libIndex map[int]string) {
 	libGetterIdentifier := make([]string, 0)
+	// _L_ib_G_etter_I_dentifier
+	usedLGIs := make([]string, 0)
 
 	newFragment := make(Tokens, 0)
 
@@ -89,6 +91,11 @@ func injectLibFragment(shader *Shader, libIndex map[int]string) {
 				hash := GetHash(libIndex, libTokenIndex)
 				libToken.Val = fmt.Sprintf("vec4 get%s", hash)
 				libGetterIdentifier = append(libGetterIdentifier, hash)
+				if addToSupplies == "" && addToTemplate == "" {
+					// we have a "normal" lib
+					// add lgi to used list
+					usedLGIs = append(usedLGIs, hash)
+				}
 			case lexer.TokenTemplate:
 				addToTemplate = lib.fragment[libTokenIndex+1].Val
 				continue // ignore the pointer
@@ -126,7 +133,13 @@ func injectLibFragment(shader *Shader, libIndex map[int]string) {
 			if i == i2 {
 				for supplyName, tokens := range supply {
 					if supplyName == supplyNameReq {
-						newFragment = append(newFragment, tokens...)
+						for _, token := range tokens {
+							newFragment = append(newFragment, token)
+							if token.Typ == lexer.TokenGet {
+								// remove the first 8 characters (vec4 get)
+								usedLGIs = append(usedLGIs, token.Val[8:])
+							}
+						}
 					}
 				}
 			}
@@ -139,7 +152,7 @@ func injectLibFragment(shader *Shader, libIndex map[int]string) {
 	for i := 0; i < len(shader.fragment); i++ {
 		if shader.fragment[i].Typ == lexer.TokenYield {
 			var sb StringBuffer
-			for _, hash := range libGetterIdentifier {
+			for _, hash := range usedLGIs {
 				
 				sb.Append(fmt.Sprintf(
 					"\t%s = get%s(%s);\n",      // fn call
