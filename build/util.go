@@ -6,7 +6,6 @@ package build
 
 import (
 	"bytes"
-	"crypto/md5"
 	"encoding/hex"
 	_ "github.com/achtern/kluver/lexer"
 	"strings"
@@ -36,7 +35,5 @@ func Contains(s []Tokens, e Tokens) bool {
 }
 
 func GetHash(i0, i1 int) string {
-	hasher := md5.New()
-	hasher.Write([]byte{byte(i0), byte(i1)})
-	return hex.EncodeToString(hasher.Sum(nil))
+	return hex.EncodeToString([]byte{byte(i0), byte(i1)})
 }

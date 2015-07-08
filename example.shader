@@ -2,7 +2,7 @@
 
 @import fog.slib;
 
-@use point from lighting.slib;
+@use ambient from lighting.slib;
 
 #---VERTEX---#
 layout (location = 0) in vec3 inPosition;
