@@ -30,5 +30,5 @@ const (
 	actionCloseBracket = ")"
 
 	pointer = "->"
-	colon = ":"
+	colon   = ":"
 )

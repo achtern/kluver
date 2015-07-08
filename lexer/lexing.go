@@ -163,60 +163,6 @@ func lexGLSL(l *lexer) stateFn {
 	return l.errorf("unclosed GLSL block")
 }
 
-func lexAction(l *lexer) stateFn {
-	l.lexStatement(action, TokenAction, nil)
-
-	if l.hasPrefix(actionRequire) {
-		return lexRequire
-	}
-
-	if l.hasPrefix(actionProvide) {
-		return lexProvide
-	}
-
-	if l.hasPrefix(actionYield) {
-		return lexYield
-	}
-
-	if l.hasPrefix(actionRequest) {
-		return lexRequest
-	}
-
-	if l.hasPrefix(actionWrite) {
-		return lexWrite
-	}
-
-	if l.hasPrefix(actionExportEnd) {
-		return lexExportEnd
-	}
-
-	if l.hasPrefix(actionExport) {
-		return lexExport
-	}
-
-	if l.hasPrefix(actionGet) {
-		return lexGet
-	}
-
-	if l.hasPrefix(actionTemplateEnd) {
-		return lexTemplateEnd
-	}
-
-	if l.hasPrefix(actionTemplate) {
-		return lexTemplate
-	}
-
-	if l.hasPrefix(actionSupplyEnd) {
-		return lexSupplyEnd
-	}
-
-	if l.hasPrefix(actionSupply) {
-		return lexSupply
-	}
-
-	return l.errorf("unclosed action")
-}
-
 func lexRequire(l *lexer) stateFn {
 	l.lexStatement(actionRequire, TokenRequire, nil)
 	l.ignoreSpace()
