@@ -19,6 +19,7 @@ type BuildStream struct {
 type LexRequest struct {
 	Path   string
 	Answer chan lexer.Token
+	supply string
 }
 
 type Shader struct {
@@ -45,6 +46,11 @@ type lib struct {
 type varDef struct {
 	typ  string
 	name string
+}
+
+type libRes struct {
+	dat Shader
+	supply string
 }
 
 type Tokens []lexer.Token
@@ -77,9 +83,11 @@ func build(tokenStream <-chan lexer.Token, buildStream BuildStream) {
 	var shader *Shader
 	var libs []lib
 
-	mainResponse := make(chan Shader)
-	libResponse := make(chan Shader)
-	reqPath := make(chan string)
+	libIndex := make(map[int]string)
+
+	mainResponse := make(chan libRes)
+	libResponse := make(chan libRes)
+	reqPath := make(chan LexRequest)
 	go generateShader(tokenStream, reqPath, mainResponse, buildStream.Err)
 
 	libsPending := 0
@@ -88,20 +96,22 @@ loop:
 	for {
 		select {
 		case s := <-mainResponse:
-			shader = &s
+			shader = &s.dat
 			if libsPending == 0 {
 				break loop
 			}
 		case l := <-libResponse:
 			libsPending -= 1
-			libs = append(libs, lib{l.vertex, l.fragment})
+			libs = append(libs, lib{l.dat.vertex, l.dat.fragment})
+			libIndex[len(libs)-1] = l.supply
 			if libsPending == 0 && shader != nil {
 				break loop
 			}
-		case path := <-reqPath:
+		case dat := <-reqPath:
 			libsPending += 1
 			libStream := make(chan lexer.Token)
-			buildStream.Request <- LexRequest{path, libStream}
+			dat.Answer = libStream
+			buildStream.Request <- dat
 			go generateShader(libStream, reqPath, libResponse, buildStream.Err)
 		}
 	}
