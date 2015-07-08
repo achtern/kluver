@@ -7,6 +7,7 @@ package build
 import (
 	"bytes"
 	"encoding/hex"
+	"fmt"
 	_ "github.com/achtern/kluver/lexer"
 	"strings"
 )
@@ -32,6 +33,24 @@ func Contains(s []Tokens, e Tokens) bool {
 		}
 	}
 	return false
+}
+
+func ContainsString(a string, list []string) bool {
+	for _, b := range list {
+		if b == a {
+			return true
+		}
+	}
+	return false
+}
+
+func GetPosLib(value lib, slice []lib) int {
+	for i, v := range slice {
+		if fmt.Sprintf("%#v", v) == fmt.Sprintf("%#v", value) {
+			return i
+		}
+	}
+	return -1
 }
 
 func GetHash(i0, i1 int) string {

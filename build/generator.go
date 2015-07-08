@@ -11,7 +11,7 @@ import (
 	"strings"
 )
 
-func generateShader(tokenStream <-chan lexer.Token, requests chan LexRequest, done chan libRes, err chan error, supply string) {
+func generateShader(tokenStream <-chan lexer.Token, requests chan LexRequest, done chan libRes, err chan error, supply, filePath string) {
 	shader := Shader{}
 
 	shader.global = make(Tokens, 0)
@@ -86,7 +86,7 @@ func generateShader(tokenStream <-chan lexer.Token, requests chan LexRequest, do
 		}
 	}
 
-	done <- libRes{shader, supply}
+	done <- libRes{shader, supply, filePath}
 }
 
 // buildGeneric compiles the generic shader, lib code has been injected already

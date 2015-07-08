@@ -49,8 +49,9 @@ type varDef struct {
 }
 
 type libRes struct {
-	dat    Shader
-	supply string
+	dat      Shader
+	supply   string
+	filePath string
 }
 
 type Tokens []lexer.Token
@@ -83,12 +84,15 @@ func build(tokenStream <-chan lexer.Token, buildStream BuildStream) {
 	var shader *Shader
 	var libs []lib
 
-	libIndex := make(map[int]string)
+	// index -> supply
+	libIndex := make(map[int][]string)
+
+	loadedLibs := make([]string, 0)
 
 	mainResponse := make(chan libRes)
 	libResponse := make(chan libRes)
 	reqPath := make(chan LexRequest)
-	go generateShader(tokenStream, reqPath, mainResponse, buildStream.Err, "MAIN_SHADER")
+	go generateShader(tokenStream, reqPath, mainResponse, buildStream.Err, "MAIN_SHADER", "MAIN_SHADER")
 
 	libsPending := 0
 
@@ -101,9 +105,14 @@ loop:
 				break loop
 			}
 		case l := <-libResponse:
+			newLib := lib{l.dat.vertex, l.dat.fragment}
+			if !ContainsString(l.filePath, loadedLibs) {
+				libs = append(libs, newLib)
+			}
+			loadedLibs = append(loadedLibs, l.filePath)
 			libsPending -= 1
-			libs = append(libs, lib{l.dat.vertex, l.dat.fragment})
-			libIndex[len(libs)-1] = l.supply
+			dest := GetPosLib(newLib, libs)
+			libIndex[dest] = append(libIndex[dest], l.supply)
 			if libsPending == 0 && shader != nil {
 				break loop
 			}
@@ -112,7 +121,7 @@ loop:
 			libStream := make(chan lexer.Token)
 			dat.Answer = libStream
 			buildStream.Request <- dat
-			go generateShader(libStream, reqPath, libResponse, buildStream.Err, dat.supply)
+			go generateShader(libStream, reqPath, libResponse, buildStream.Err, dat.supply, dat.Path)
 		}
 	}
 
@@ -131,7 +140,7 @@ loop:
 	buildStream.Response <- *shader
 }
 
-func (shader *Shader) injectLibs(libs []lib, libIndex map[int]string) {
+func (shader *Shader) injectLibs(libs []lib, libIndex map[int][]string) {
 	shader.libs = libs
 	injectLibVertex(shader, libIndex)
 	injectLibFragment(shader, libIndex)

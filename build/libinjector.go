@@ -9,7 +9,7 @@ import (
 	"github.com/achtern/kluver/lexer"
 )
 
-func injectLibVertex(shader *Shader, libIndex map[int]string) {
+func injectLibVertex(shader *Shader, libIndex map[int][]string) {
 outer:
 	for {
 		for i := 0; i < len(shader.vertex); i++ {
@@ -51,7 +51,7 @@ outer:
 	}
 }
 
-func injectLibFragment(shader *Shader, libIndex map[int]string) {
+func injectLibFragment(shader *Shader, libIndex map[int][]string) {
 	libGetterIdentifier := make([]string, 0)
 	// _L_ib_G_etter_I_dentifier
 	usedLGIs := make([]string, 0)
@@ -103,7 +103,7 @@ func injectLibFragment(shader *Shader, libIndex map[int]string) {
 				addToSupplies = lib.fragment[libTokenIndex+1].Val
 				skipNext = 2 // skip name of the supply and the pointer
 				suppliesParentName = ""
-				
+
 				if lib.fragment[libTokenIndex+2].Typ == lexer.TokenColon {
 					// this supply extends a template
 					suppliesParentName = lib.fragment[libTokenIndex+3].Val
@@ -127,17 +127,19 @@ func injectLibFragment(shader *Shader, libIndex map[int]string) {
 	}
 
 	// included requsted supplies
-	for i, supplyNameReq := range libIndex {
+	for i, supplyNamesReq := range libIndex {
 		for i2, supply := range supplies {
 			// supply is of type "map[string]Tokens"
 			if i == i2 {
 				for supplyName, tokens := range supply {
-					if supplyName == supplyNameReq {
-						for _, token := range tokens {
-							newFragment = append(newFragment, token)
-							if token.Typ == lexer.TokenGet {
-								// remove the first 8 characters (vec4 get)
-								usedLGIs = append(usedLGIs, token.Val[8:])
+					for _, supplyNameReq := range supplyNamesReq {
+						if supplyName == supplyNameReq {
+							for _, token := range tokens {
+								newFragment = append(newFragment, token)
+								if token.Typ == lexer.TokenGet {
+									// remove the first 8 characters (vec4 get)
+									usedLGIs = append(usedLGIs, token.Val[8:])
+								}
 							}
 						}
 					}
@@ -153,12 +155,12 @@ func injectLibFragment(shader *Shader, libIndex map[int]string) {
 		if shader.fragment[i].Typ == lexer.TokenYield {
 			var sb StringBuffer
 			for _, hash := range usedLGIs {
-				
+
 				sb.Append(fmt.Sprintf(
-					"\t%s = get%s(%s);\n",      // fn call
+					"\t%s = get%s(%s);\n",    // fn call
 					shader.fragment[i+1].Val, // actionVar
-					hash, 					  // libGetterIdentifier
-					shader.fragment[i+1].Val))// actionVar
+					hash, // libGetterIdentifier
+					shader.fragment[i+1].Val)) // actionVar
 			}
 			shader.fragment[i].Val = sb.String()
 		}
