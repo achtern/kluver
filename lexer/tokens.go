@@ -73,6 +73,12 @@ const (
 	TokenActionCloseBracket
 	TokenWriteSlot
 	TokenGet
+	TokenTemplate
+	TokenTemplateEnd
+	TokenPointer
+	TokenColon
+	TokenSupply
+	TokenSupplyEnd
 )
 
 func (i TokenType) String() string {
@@ -139,6 +145,18 @@ func (i TokenType) String() string {
 		return "TokenWriteSlot"
 	case TokenGet:
 		return "TokenGet"
+	case TokenTemplate:
+		return "TokenTemplate"
+	case TokenTemplateEnd:
+		return "TokenTemplateEnd"
+	case TokenPointer:
+		return "TokenPointer"
+	case TokenColon:
+		return "TokenColon"
+	case TokenSupply:
+		return "TokenSupply"
+	case TokenSupplyEnd:
+		return "TokenSupplyEnd"
 	default:
 		return "unknown"
 	}

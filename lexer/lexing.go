@@ -198,6 +198,22 @@ func lexAction(l *lexer) stateFn {
 		return lexGet
 	}
 
+	if l.hasPrefix(actionTemplateEnd) {
+		return lexTemplateEnd
+	}
+
+	if l.hasPrefix(actionTemplate) {
+		return lexTemplate
+	}
+
+	if l.hasPrefix(actionSupplyEnd) {
+		return lexSupplyEnd
+	}
+
+	if l.hasPrefix(actionSupply) {
+		return lexSupply
+	}
+
 	return l.errorf("unclosed action")
 }
 
@@ -229,6 +245,51 @@ func lexExportEnd(l *lexer) stateFn {
 	l.lexStatement(actionExportEnd, TokenExportEnd, nil)
 	l.ignoreSpace()
 	return lexGLSL
+}
+
+func lexTemplate(l *lexer) stateFn {
+	return l.lexStatement(actionTemplate, TokenTemplate, lexTemplateName)
+}
+
+func lexTemplateName(l *lexer) stateFn {
+	l.ignoreSpace()
+	for {
+		if l.testPrefix(pointer, TokenNameDec) {
+			return getLexPointer(lexGLSL)
+		}
+		if l.next() == eof {
+			break
+		}
+	}
+	return l.errorf("unclosed template statement")
+}
+
+func lexTemplateEnd(l *lexer) stateFn {
+	return l.lexStatement(actionTemplateEnd, TokenTemplateEnd, lexGLSL)
+}
+
+func lexSupply(l *lexer) stateFn {
+	return l.lexStatement(actionSupply, TokenSupply, lexSupplyName)
+}
+
+func lexSupplyName(l *lexer) stateFn {
+	l.ignoreSpace()
+	for {
+		if l.testPrefix(pointer, TokenNameDec) {
+			return getLexPointer(lexGLSL)
+		}
+		if l.testPrefix(colon, TokenNameDec) {
+			return getLexColon(lexSupplyName) // lexSupplyExtends would be the same method
+		}
+		if l.next() == eof {
+			break
+		}
+	}
+	return l.errorf("unclosed supply statement")
+}
+
+func lexSupplyEnd(l *lexer) stateFn {
+	return l.lexStatement(actionSupplyEnd, TokenSupplyEnd, lexGLSL)
 }
 
 func lexGet(l *lexer) stateFn {
@@ -364,5 +425,19 @@ func getLexActionVar(terminator string, next stateFn) stateFn {
 			}
 		}
 		return next
+	}
+}
+
+func getLexPointer(next stateFn) stateFn {
+	return func(l *lexer) stateFn {
+		l.ignoreSpace()
+		return l.lexStatement(pointer, TokenPointer, next)
+	}
+}
+
+func getLexColon(next stateFn) stateFn {
+	return func(l *lexer) stateFn {
+		l.ignoreSpace()
+		return l.lexStatement(colon, TokenColon, next)
 	}
 }
