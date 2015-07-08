@@ -52,7 +52,7 @@ outer:
 }
 
 func injectLibFragment(shader *Shader, libIndex map[int]string) {
-	libGetterIdentifier := 0
+	libGetterIdentifier := make([]string, 0)
 
 	newFragment := make(Tokens, 0)
 
@@ -86,8 +86,9 @@ func injectLibFragment(shader *Shader, libIndex map[int]string) {
 			case lexer.TokenExportEnd:
 				include = false
 			case lexer.TokenGet:
-				libToken.Val = fmt.Sprintf("vec4 get%d", libGetterIdentifier)
-				libGetterIdentifier += 1
+				hash := GetHash(libIndex, libTokenIndex)
+				libToken.Val = fmt.Sprintf("vec4 get%s", hash)
+				libGetterIdentifier = append(libGetterIdentifier, hash)
 			case lexer.TokenTemplate:
 				addToTemplate = lib.fragment[libTokenIndex+1].Val
 				continue // ignore the pointer
@@ -138,12 +139,13 @@ func injectLibFragment(shader *Shader, libIndex map[int]string) {
 	for i := 0; i < len(shader.fragment); i++ {
 		if shader.fragment[i].Typ == lexer.TokenYield {
 			var sb StringBuffer
-			for x := range shader.libs {
+			for _, hash := range libGetterIdentifier {
+				
 				sb.Append(fmt.Sprintf(
-					"%s = get%d(%s);",        // fn call
+					"\t%s = get%s(%s);\n",      // fn call
 					shader.fragment[i+1].Val, // actionVar
-					x, // libGetterIdentifier equiv.
-					shader.fragment[i+1].Val)) // actionVar
+					hash, 					  // libGetterIdentifier
+					shader.fragment[i+1].Val))// actionVar
 			}
 			shader.fragment[i].Val = sb.String()
 		}
