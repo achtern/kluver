@@ -18,7 +18,6 @@ func generateShader(tokenStream <-chan lexer.Token, requests chan LexRequest, do
 	shader.vertex = make(Tokens, 0)
 	shader.fragment = make(Tokens, 0)
 
-
 	nextNameDecIsUse := false
 	useSupply := ""
 
@@ -42,12 +41,12 @@ func generateShader(tokenStream <-chan lexer.Token, requests chan LexRequest, do
 
 		if token.Typ == lexer.TokenImportPath {
 			supply := ""
-			
+
 			if useSupply != "" {
 				supply = useSupply
 			}
 
-			requests <- LexRequest{token.Val,nil,supply}
+			requests <- LexRequest{token.Val, nil, supply}
 			useSupply = ""
 		}
 
@@ -87,7 +86,7 @@ func generateShader(tokenStream <-chan lexer.Token, requests chan LexRequest, do
 		}
 	}
 
-	done <- libRes{shader,supply}
+	done <- libRes{shader, supply}
 }
 
 // buildGeneric compiles the generic shader, lib code has been injected already

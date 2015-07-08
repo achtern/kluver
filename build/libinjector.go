@@ -9,7 +9,7 @@ import (
 	"github.com/achtern/kluver/lexer"
 )
 
-func injectLibVertex(shader *Shader) {
+func injectLibVertex(shader *Shader, libIndex map[int]string) {
 outer:
 	for {
 		for i := 0; i < len(shader.vertex); i++ {
@@ -51,7 +51,7 @@ outer:
 	}
 }
 
-func injectLibFragment(shader *Shader) {
+func injectLibFragment(shader *Shader, libIndex map[int]string) {
 	libGetterIdentifier := 0
 
 	newFragment := make(Tokens, 0)

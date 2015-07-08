@@ -49,7 +49,7 @@ type varDef struct {
 }
 
 type libRes struct {
-	dat Shader
+	dat    Shader
 	supply string
 }
 
@@ -133,8 +133,8 @@ loop:
 
 func (shader *Shader) injectLibs(libs []lib, libIndex map[int]string) {
 	shader.libs = libs
-	injectLibVertex(shader)
-	injectLibFragment(shader)
+	injectLibVertex(shader, libIndex)
+	injectLibFragment(shader, libIndex)
 }
 
 func (shader *Shader) buildVertex() {
