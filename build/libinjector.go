@@ -109,6 +109,20 @@ func injectLibFragment(shader *Shader, libIndex map[int]string) {
 		}
 	}
 
+	// included requsted supplies
+	for i, supplyNameReq := range libIndex {
+		for i2, supply := range supplies {
+			// supply is of type "map[string]Tokens"
+			if i == i2 {
+				for supplyName, tokens := range supply {
+					if supplyName == supplyNameReq {
+						newFragment = append(newFragment, tokens...)
+					}
+				}
+			}
+		}
+	}
+
 	shader.fragment = append(newFragment, shader.fragment...)
 
 	// for every yield token, we have to call the @get functions of all libs
