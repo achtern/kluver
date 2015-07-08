@@ -56,8 +56,15 @@ func injectLibFragment(shader *Shader, libIndex map[int]string) {
 
 	newFragment := make(Tokens, 0)
 
+	// template -> its tokens
 	templates := make(map[string]Tokens)
+	// supply -> its tokens
+	supplies := make(map[string]Tokens)
+	// supply -> its parent
+	suppliesParent := make(map[string]string)
 	addToTemplate := ""
+	addToSupplies := ""
+	suppliesParentName := ""
 
 	include := false
 	for _, lib := range shader.libs {
@@ -74,12 +81,25 @@ func injectLibFragment(shader *Shader, libIndex map[int]string) {
 			case lexer.TokenTemplate:
 				addToTemplate = lib.fragment[libTokenIndex+1].Val
 				continue // ignore the pointer
+			case lexer.TokenSupply:
+				addToSupplies = lib.fragment[libTokenIndex+1].Val
+				suppliesParentName = ""
+				
+				if lib.fragment[libTokenIndex+2].Typ == lexer.TokenColon {
+					// this supply extends a template
+					suppliesParentName = lib.fragment[libTokenIndex+3].Val
+				}
+				continue
 			}
 			if include {
 				newFragment = append(newFragment, libToken)
 			}
 			if addToTemplate != "" {
 				templates[addToTemplate] = append(templates[addToTemplate], libToken)
+			}
+			if addToSupplies != "" {
+				supplies[addToSupplies] = append(supplies[addToSupplies], libToken)
+				suppliesParent[addToSupplies] = suppliesParentName
 			}
 		}
 	}
