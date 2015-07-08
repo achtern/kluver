@@ -126,6 +126,8 @@ func injectLibFragment(shader *Shader, libIndex map[int][]string) {
 		}
 	}
 
+	// TODO: include the parent block
+
 	// included requsted supplies
 	for i, supplyNamesReq := range libIndex {
 		for i2, supply := range supplies {
