@@ -88,7 +88,7 @@ func build(tokenStream <-chan lexer.Token, buildStream BuildStream) {
 	mainResponse := make(chan libRes)
 	libResponse := make(chan libRes)
 	reqPath := make(chan LexRequest)
-	go generateShader(tokenStream, reqPath, mainResponse, buildStream.Err)
+	go generateShader(tokenStream, reqPath, mainResponse, buildStream.Err, "MAIN_SHADER")
 
 	libsPending := 0
 
@@ -112,11 +112,11 @@ loop:
 			libStream := make(chan lexer.Token)
 			dat.Answer = libStream
 			buildStream.Request <- dat
-			go generateShader(libStream, reqPath, libResponse, buildStream.Err)
+			go generateShader(libStream, reqPath, libResponse, buildStream.Err, dat.supply)
 		}
 	}
 
-	shader.injectLibs(libs)
+	shader.injectLibs(libs, libIndex)
 
 	shader.buildVertex()
 	shader.buildFragment()
@@ -131,7 +131,7 @@ loop:
 	buildStream.Response <- *shader
 }
 
-func (shader *Shader) injectLibs(libs []lib) {
+func (shader *Shader) injectLibs(libs []lib, libIndex map[int]string) {
 	shader.libs = libs
 	injectLibVertex(shader)
 	injectLibFragment(shader)
