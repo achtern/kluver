@@ -51,6 +51,7 @@ const (
 	TokenImport
 	TokenImportPath
 	TokenUse
+	TokenUseFrom
 	TokenExport
 	TokenExportEnd
 	TokenVertex
@@ -94,6 +95,8 @@ func (i TokenType) String() string {
 		return "TokenImportPath"
 	case TokenUse:
 		return "TokenUse"
+	case TokenUseFrom:
+		return "TokenUseFrom"
 	case TokenExport:
 		return "TokenExport"
 	case TokenExportEnd:

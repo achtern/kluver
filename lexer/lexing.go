@@ -71,7 +71,7 @@ func lexExtendsName(l *lexer) stateFn {
 		case r == '\n':
 			l.backup() // we do not want to have the line break in the name
 			l.emit(TokenExtendsName)
-			l.next() // advance forward
+			l.next()   // advance forward
 			l.ignore() // and ignore the line break
 			return lexVoid
 		}
@@ -120,8 +120,20 @@ func lexUse(l *lexer) stateFn {
 }
 
 func lexUseName(l *lexer) stateFn {
-	// TODO: fix me
-	return lexVoid
+	ignoreSpace(l)
+	for {
+		if l.testPrefix(useFrom, TokenNameDec) {
+			return lexUseFrom
+		}
+		if l.next() == eof {
+			break
+		}
+	}
+	return l.errorf("unclosed use statement")
+}
+
+func lexUseFrom(l *lexer) stateFn {
+	return l.lexStatement(useFrom, TokenUseFrom, lexImportPath)
 }
 
 func lexVertex(l *lexer) stateFn {
