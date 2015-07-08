@@ -56,9 +56,12 @@ func injectLibFragment(shader *Shader, libIndex map[int]string) {
 
 	newFragment := make(Tokens, 0)
 
+	templates := make(map[string]Tokens)
+	addToTemplate := ""
+
 	include := false
 	for _, lib := range shader.libs {
-		for _, libToken := range lib.fragment {
+		for libTokenIndex, libToken := range lib.fragment {
 			switch libToken.Typ {
 			case lexer.TokenExport:
 				include = true
@@ -68,9 +71,15 @@ func injectLibFragment(shader *Shader, libIndex map[int]string) {
 			case lexer.TokenGet:
 				libToken.Val = fmt.Sprintf("vec4 get%d", libGetterIdentifier)
 				libGetterIdentifier += 1
+			case lexer.TokenTemplate:
+				addToTemplate = lib.fragment[libTokenIndex+1].Val
+				continue // ignore the pointer
 			}
 			if include {
 				newFragment = append(newFragment, libToken)
+			}
+			if addToTemplate != "" {
+				templates[addToTemplate] = append(templates[addToTemplate], libToken)
 			}
 		}
 	}
