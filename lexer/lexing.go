@@ -120,7 +120,7 @@ func lexUse(l *lexer) stateFn {
 }
 
 func lexUseName(l *lexer) stateFn {
-	ignoreSpace(l)
+	l.ignoreSpace()
 	for {
 		if l.testPrefix(useFrom, TokenNameDec) {
 			return lexUseFrom
@@ -203,31 +203,31 @@ func lexAction(l *lexer) stateFn {
 
 func lexRequire(l *lexer) stateFn {
 	l.lexStatement(actionRequire, TokenRequire, nil)
-	ignoreSpace(l)
+	l.ignoreSpace()
 	return lexTypeDef
 }
 
 func lexRequest(l *lexer) stateFn {
 	l.lexStatement(actionRequest, TokenRequest, nil)
-	ignoreSpace(l)
+	l.ignoreSpace()
 	return lexTypeDef
 }
 
 func lexProvide(l *lexer) stateFn {
 	l.lexStatement(actionProvide, TokenProvide, nil)
-	ignoreSpace(l)
+	l.ignoreSpace()
 	return lexTypeDef
 }
 
 func lexExport(l *lexer) stateFn {
 	l.lexStatement(actionExport, TokenExport, nil)
-	ignoreSpace(l)
+	l.ignoreSpace()
 	return lexGLSL
 }
 
 func lexExportEnd(l *lexer) stateFn {
 	l.lexStatement(actionExportEnd, TokenExportEnd, nil)
-	ignoreSpace(l)
+	l.ignoreSpace()
 	return lexGLSL
 }
 
@@ -257,7 +257,7 @@ func lexTypeDef(l *lexer) stateFn {
 }
 
 func lexNameDec(l *lexer) stateFn {
-	ignoreSpace(l)
+	l.ignoreSpace()
 	for {
 		if l.testPrefix(endStatement, TokenNameDec) {
 			return lexEndStatement
@@ -281,7 +281,7 @@ func lexNameDec(l *lexer) stateFn {
 
 func lexActionAssign(l *lexer) stateFn {
 	l.lexStatement(actionAssign, TokenAssign, nil)
-	ignoreSpace(l)
+	l.ignoreSpace()
 	return lexGLSLAction
 }
 

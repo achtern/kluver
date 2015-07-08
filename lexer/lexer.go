@@ -86,6 +86,14 @@ func (l *lexer) testPrefix(pre string, token TokenType) bool {
 	return false
 }
 
+func (l *lexer) ignoreSpace() {
+	if isSpace(l.next()) {
+		l.ignore()
+	} else {
+		l.backup()
+	}
+}
+
 func (l *lexer) errorf(format string, args ...interface{}) stateFn {
 	l.tokens <- Token{TokenError, l.start, fmt.Sprintf(format, args...)}
 	return nil
