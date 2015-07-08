@@ -18,6 +18,10 @@ func generateShader(tokenStream <-chan lexer.Token, requests chan LexRequest, do
 	shader.vertex = make(Tokens, 0)
 	shader.fragment = make(Tokens, 0)
 
+
+	nextNameDecIsUse := false
+	useSupply := ""
+
 	// phase 0 : global
 	// phase 1 : vertex
 	// phase 2 : fragment
@@ -28,8 +32,23 @@ func generateShader(tokenStream <-chan lexer.Token, requests chan LexRequest, do
 			return
 		}
 
+		if token.Typ == lexer.TokenUse {
+			nextNameDecIsUse = true
+		}
+
+		if token.Typ == lexer.TokenNameDec && nextNameDecIsUse {
+			useSupply = token.Val
+		}
+
 		if token.Typ == lexer.TokenImportPath {
-			requests <- LexRequest{token.Val,nil,""}
+			supply := ""
+			
+			if useSupply != "" {
+				supply = useSupply
+			}
+
+			requests <- LexRequest{token.Val,nil,supply}
+			useSupply = ""
 		}
 
 		switch token.Typ {
