@@ -70,7 +70,7 @@ func (s *Shader) GetFragment() string {
 	return s.compiled.fragment
 }
 
-func New(tokenStream <-chan lexer.Token) BuildStream {
+func New(tokenStream chan lexer.Token) BuildStream {
 	buildStream := BuildStream{
 		make(chan error),
 		make(chan LexRequest),
@@ -80,7 +80,7 @@ func New(tokenStream <-chan lexer.Token) BuildStream {
 	return buildStream
 }
 
-func build(tokenStream <-chan lexer.Token, buildStream BuildStream) {
+func build(tokenStream chan lexer.Token, buildStream BuildStream) {
 	var shader *Shader
 	var libs []lib
 
@@ -118,10 +118,9 @@ loop:
 			}
 		case dat := <-reqPath:
 			libsPending += 1
-			libStream := make(chan lexer.Token)
-			dat.Answer = libStream
+			dat.Answer = make(chan lexer.Token)
 			buildStream.Request <- dat
-			go generateShader(libStream, reqPath, libResponse, buildStream.Err, dat.supply, dat.Path)
+			go generateShader(dat.Answer, reqPath, libResponse, buildStream.Err, dat.supply, dat.Path)
 		}
 	}
 
