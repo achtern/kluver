@@ -129,6 +129,8 @@ func injectLibFragment(shader *Shader, libIndex map[int][]string) {
 		}
 	}
 
+	includedTemplateBlocks := make([]string, 0)
+
 	// included requsted supplies
 	for i, supplyNamesReq := range libIndex {
 		for i2, supply := range supplies {
@@ -139,9 +141,13 @@ func injectLibFragment(shader *Shader, libIndex map[int][]string) {
 						if supplyName == supplyNameReq {
 							// add tokens of parent
 							parentName := suppliesParent[i][supplyName]
-							tokensOfParent := templates[i][parentName]
-							for _, token := range tokensOfParent {
-								newFragment = append(newFragment, token)
+							// but only if it has not been included yet
+							if !ContainsString(parentName, includedTemplateBlocks) {
+								tokensOfParent := templates[i][parentName]
+								for _, token := range tokensOfParent {
+									newFragment = append(newFragment, token)
+								}
+								includedTemplateBlocks = append(includedTemplateBlocks, parentName)
 							}
 							// add tokens of supply
 							for _, token := range tokens {
