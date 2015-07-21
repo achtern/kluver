@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"github.com/achtern/kluver/lexer"
 	"strings"
+	"os"
 )
 
 func generateShader(tokenStream <-chan lexer.Token, requests chan LexRequest, done chan libRes, err chan error, supply, filePath string) {
@@ -29,6 +30,11 @@ func generateShader(tokenStream <-chan lexer.Token, requests chan LexRequest, do
 		if token.Typ == lexer.TokenError {
 			err <- errors.New(token.Val)
 			return
+		}
+
+		if token.Typ == lexer.TokenExtends {
+			fmt.Println("extending is not yet supported!")
+			os.Exit(1)
 		}
 
 		if token.Typ == lexer.TokenUse {
