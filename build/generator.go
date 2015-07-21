@@ -33,6 +33,9 @@ func generateShader(tokenStream <-chan lexer.Token, requests chan LexRequest, do
 		}
 
 		if token.Typ == lexer.TokenExtends {
+			if supply != "MAIN_SHADER" {
+				fmt.Println("only the main shader can extend others")
+			}
 			fmt.Println("extending is not yet supported!")
 			os.Exit(1)
 		}
