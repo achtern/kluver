@@ -93,7 +93,7 @@
     @require float specularIntensity;
     @require float specularPower;
 
-    @request vec2 normal;
+    @request vec3 normal;
     @request vec3 worldPos;
 @templateEnd
 
