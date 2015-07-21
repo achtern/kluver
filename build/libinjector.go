@@ -98,7 +98,10 @@ func injectLibFragment(shader *Shader, libIndex map[int][]string) {
 				}
 			case lexer.TokenTemplate:
 				addToTemplate = lib.fragment[libTokenIndex+1].Val
-				continue // ignore the pointer
+				skipNext += 2 // ignore the pointer && name
+				continue // ignore the template token
+			case lexer.TokenTemplateEnd:
+				addToTemplate = ""
 			case lexer.TokenSupply:
 				addToSupplies = lib.fragment[libTokenIndex+1].Val
 				skipNext = 2 // skip name of the supply and the pointer
@@ -116,7 +119,7 @@ func injectLibFragment(shader *Shader, libIndex map[int][]string) {
 			if include {
 				newFragment = append(newFragment, libToken)
 			}
-			if addToTemplate != "" && libToken.Typ == lexer.TokenGLSL {
+			if addToTemplate != "" {
 				templates[libIndex][addToTemplate] = append(templates[libIndex][addToTemplate], libToken)
 			}
 			if addToSupplies != "" {
@@ -126,8 +129,6 @@ func injectLibFragment(shader *Shader, libIndex map[int][]string) {
 		}
 	}
 
-	// TODO: include the parent block
-
 	// included requsted supplies
 	for i, supplyNamesReq := range libIndex {
 		for i2, supply := range supplies {
@@ -136,6 +137,13 @@ func injectLibFragment(shader *Shader, libIndex map[int][]string) {
 				for supplyName, tokens := range supply {
 					for _, supplyNameReq := range supplyNamesReq {
 						if supplyName == supplyNameReq {
+							// add tokens of parent
+							parentName := suppliesParent[i][supplyName]
+							tokensOfParent := templates[i][parentName]
+							for _, token := range tokensOfParent {
+								newFragment = append(newFragment, token)
+							}
+							// add tokens of supply
 							for _, token := range tokens {
 								newFragment = append(newFragment, token)
 								if token.Typ == lexer.TokenGet {
